@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Cuntours",
+      "hasCanvas": false,
+      "bodyTextLen": 5376,
+      "bodyTextHash": "d84209fe9d5b8c91b8a786ac578bda286c96b6e952324e16c925369f5d39efbf",
+      "bodyTextPrefix": "Cuntours Cancún · Riviera Maya Tours Último día Reseñas Reservar",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Cuntours",
+      "hasCanvas": false,
+      "bodyTextLen": 5320,
+      "bodyTextHash": "1c4b0f269f74af0e1901c357735d874e5c6d493bfa1aab3a80b3a1bd729def2d",
+      "bodyTextPrefix": "Cuntours Último día. 18 asientos · cierra en 01:24:24 Ver oferta",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-preview.json"
+}
