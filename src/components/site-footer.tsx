@@ -1,15 +1,23 @@
 import { Link } from "@tanstack/react-router";
+import { TripAdvisorBadge } from "@/components/tripadvisor-badge";
 
 export function SiteFooter() {
   return (
     <footer className="mt-auto border-t border-border bg-teal-deep text-foam">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-3">
         <div>
-          <p className="font-display text-2xl tracking-tight">Cuntours</p>
+          <img
+            src="/brand/cuntours-logo-white.png"
+            alt="Cuntours"
+            className="h-8 w-auto object-contain"
+          />
           <p className="mt-3 max-w-xs text-sm leading-relaxed text-foam/75">
             Operadora local en Cancún. Tours acuáticos y arqueológicos con compra
             directa, sin marketplace.
           </p>
+          <div className="mt-4">
+            <TripAdvisorBadge tone="onDark" size="sm" />
+          </div>
         </div>
         <div>
           <p className="text-sm font-medium">Explorar</p>

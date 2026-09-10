@@ -15,8 +15,12 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border/80 bg-bg/90 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-        <Link to="/" className="flex items-baseline gap-2" onClick={() => setOpen(false)}>
-          <span className="font-display text-xl tracking-tight text-ink">Cuntours</span>
+        <Link to="/" className="flex items-center gap-2.5" onClick={() => setOpen(false)}>
+          <img
+            src="/brand/cuntours-logo.png"
+            alt="Cuntours"
+            className="h-9 w-auto object-contain sm:h-10"
+          />
           <span className="hidden text-xs text-muted sm:inline">Cancún · Riviera Maya</span>
         </Link>
 
