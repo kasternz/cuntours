@@ -5,17 +5,17 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatUsd(amount: number) {
-  return new Intl.NumberFormat("es-MX", {
+export function formatUsd(amount: number, lang: "es" | "en" = "es") {
+  return new Intl.NumberFormat(lang === "es" ? "es-MX" : "en-US", {
     style: "currency",
     currency: "USD",
     maximumFractionDigits: 0,
   }).format(amount);
 }
 
-export function formatDateLong(iso: string) {
+export function formatDateLong(iso: string, lang: "es" | "en" = "es") {
   const date = new Date(`${iso}T12:00:00`);
-  return new Intl.DateTimeFormat("es-MX", {
+  return new Intl.DateTimeFormat(lang === "es" ? "es-MX" : "en-US", {
     weekday: "long",
     day: "numeric",
     month: "long",

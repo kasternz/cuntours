@@ -4,6 +4,7 @@ import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { LastMinuteStrip } from "@/components/last-minute-strip";
+import { I18nProvider } from "@/i18n/context";
 import appCss from "../styles.css?url";
 
 const APP_NAME = "Cuntours";
@@ -45,12 +46,14 @@ function RootLayout() {
       </head>
       <body className="flex min-h-dvh flex-col bg-bg text-ink">
         <PreviewHostBridge />
-        <AuthProvider>
-          <SiteHeader />
-          <LastMinuteStrip />
-          <Outlet />
-          <SiteFooter />
-        </AuthProvider>
+        <I18nProvider>
+          <AuthProvider>
+            <SiteHeader />
+            <LastMinuteStrip />
+            <Outlet />
+            <SiteFooter />
+          </AuthProvider>
+        </I18nProvider>
         <Scripts />
       </body>
     </html>

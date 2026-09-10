@@ -1,6 +1,8 @@
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { tripAdvisor } from "@/lib/tripadvisor";
+import { useLang } from "@/i18n/context";
+import { copy } from "@/i18n/copy";
 
 /**
  * Links out to the real Cuntours TripAdvisor profile. Never pair this with
@@ -16,6 +18,7 @@ export function TripAdvisorBadge({
   tone?: "default" | "onDark";
   className?: string;
 }) {
+  const { lang } = useLang();
   const text = tone === "onDark" ? "text-foam" : "text-ink";
   const sub = tone === "onDark" ? "text-foam/70" : "text-muted";
   const star = tone === "onDark" ? "text-foam" : "text-teal";
@@ -34,7 +37,7 @@ export function TripAdvisorBadge({
       <Star size={size === "sm" ? 14 : 16} className={cn(star, "fill-current")} />
       <span className={cn("font-medium tabular-nums", text)}>{tripAdvisor.rating}</span>
       <span className={sub}>
-        · {tripAdvisor.reviewCount} reseñas en TripAdvisor
+        · {tripAdvisor.reviewCount} {copy.reviewsOnTripAdvisor[lang]}
       </span>
     </a>
   );

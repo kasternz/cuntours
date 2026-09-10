@@ -20,7 +20,6 @@ export type Guest = {
 export type ConfirmedBooking = BookingDraft &
   Guest & {
     id: string;
-    tourName: string;
     total: number;
     createdAt: string;
   };
@@ -71,7 +70,6 @@ export const useCart = create<CartState>((set, get) => ({
       ...draft,
       ...guest,
       id: bookingId(),
-      tourName: tour.name,
       total: tourPrice(tour, draft.adults, draft.children),
       createdAt: new Date().toISOString(),
     };

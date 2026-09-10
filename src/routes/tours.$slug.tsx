@@ -3,14 +3,12 @@ import { Check, Clock, Languages, MapPin, Users } from "lucide-react";
 import { useState } from "react";
 import { Countdown } from "@/components/countdown";
 import { Qty } from "@/components/qty";
-import { ReviewCard } from "@/components/review-card";
 import { CircleRating } from "@/components/traveler-rating";
 import { TourCard } from "@/components/tour-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCart } from "@/lib/cart";
-import { reviewsForTour } from "@/lib/reviews";
 import {
   categoryLabel,
   getTour,
@@ -18,12 +16,15 @@ import {
   tourPrice,
 } from "@/lib/tours";
 import { formatUsd, todayIso } from "@/lib/utils";
+import { useLang } from "@/i18n/context";
+import { copy } from "@/i18n/copy";
 
 export const Route = createFileRoute("/tours/$slug")({
   component: TourDetail,
 });
 
 function TourDetail() {
+  const { lang } = useLang();
   const { slug } = Route.useParams();
   const tour = getTour(slug);
   const navigate = useNavigate();
@@ -39,17 +40,16 @@ function TourDetail() {
   if (!tour) {
     return (
       <main className="mx-auto max-w-xl px-4 py-20 text-center">
-        <h1 className="font-display text-3xl tracking-tight">Tour no encontrado</h1>
-        <p className="mt-3 text-muted">Ese enlace ya no existe o cambió de nombre.</p>
+        <h1 className="font-display text-3xl tracking-tight">{copy.tourNotFound[lang]}</h1>
+        <p className="mt-3 text-muted">{copy.tourNotFoundBody[lang]}</p>
         <Link to="/tours" className="mt-6 inline-flex text-sm font-medium text-teal">
-          Volver al catálogo
+          {copy.backToCatalog[lang]}
         </Link>
       </main>
     );
   }
 
   const total = tourPrice(tour, adults, children);
-  const tourReviews = reviewsForTour(tour.slug);
   const related = relatedTours(tour.slug);
   const minDate = tour.lastMinute?.departs === "hoy" ? todayIso(0) : todayIso(0);
 
@@ -60,7 +60,7 @@ function TourDetail() {
       date,
       adults,
       children,
-      pickup: pickup.trim() || "Zona hotelera Cancún",
+      pickup: pickup.trim() || (lang === "es" ? "Zona hotelera Cancún" : "Cancún hotel zone"),
     });
     void navigate({ to: "/checkout" });
   }
@@ -68,13 +68,15 @@ function TourDetail() {
   return (
     <main>
       <div className="relative h-[46vh] min-h-72 w-full overflow-hidden sm:h-[56vh]">
-        <img src={tour.image} alt={tour.name} className="size-full object-cover" />
+        <img src={tour.image} alt={tour.name[lang]} className="size-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/20 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 mx-auto max-w-6xl px-4 pb-8 sm:px-6">
           <p className="text-sm font-medium uppercase tracking-[0.16em] text-foam/80">
-            {categoryLabel(tour.category)}
+            {categoryLabel(tour.category, lang)}
           </p>
-          <h1 className="mt-1 font-display text-4xl tracking-tight text-foam sm:text-5xl">{tour.name}</h1>
+          <h1 className="mt-1 font-display text-4xl tracking-tight text-foam sm:text-5xl">
+            {tour.name[lang]}
+          </h1>
         </div>
       </div>
 
@@ -86,27 +88,31 @@ function TourDetail() {
             </span>
             <CircleRating value={tour.rating} />
             <span className="text-sm text-muted">
-              {tour.rating.toFixed(1)} · {tour.reviewCount.toLocaleString("es-MX")} reseñas de
-              viajeros
+              {tour.rating.toFixed(1)} ·{" "}
+              {tour.reviewCount.toLocaleString(lang === "es" ? "es-MX" : "en-US")}{" "}
+              {copy.travelerReviewsShort[lang]}
             </span>
           </div>
-          <p className="mt-5 max-w-2xl text-lg leading-relaxed text-ink-soft">{tour.description}</p>
+          <p className="mt-5 max-w-2xl text-lg leading-relaxed text-ink-soft">
+            {tour.description[lang]}
+          </p>
 
           <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-            <Meta icon={Clock} label="Duración" value={tour.duration} />
-            <Meta icon={MapPin} label="Lugar" value={tour.location} />
-            <Meta icon={Users} label="Grupo" value={tour.groupSize} />
-            <Meta icon={Languages} label="Idiomas" value={tour.languages} />
+            <Meta icon={Clock} label={copy.metaDuration[lang]} value={tour.duration[lang]} />
+            <Meta icon={MapPin} label={copy.metaLocation[lang]} value={tour.location[lang]} />
+            <Meta icon={Users} label={copy.metaGroup[lang]} value={tour.groupSize[lang]} />
+            <Meta icon={Languages} label={copy.metaLanguages[lang]} value={tour.languages[lang]} />
           </ul>
 
           {tour.lastMinute ? (
             <div className="mt-8 rounded-[var(--radius-lg)] bg-warn-soft p-5">
               <p className="text-sm font-medium text-warn">
-                Oferta de último {tour.lastMinute.departs === "hoy" ? "día" : "aviso"}
+                {tour.lastMinute.departs === "hoy" ? copy.dealToday[lang] : copy.dealTomorrow[lang]}
               </p>
               <p className="mt-1 text-sm text-ink-soft">
-                Quedan {tour.lastMinute.seats} asientos · −{tour.lastMinute.discountPct}% · cierra
-                en <Countdown departs={tour.lastMinute.departs} />
+                {copy.seatsLeftPrefix[lang] ? `${copy.seatsLeftPrefix[lang]} ` : ""}
+                {tour.lastMinute.seats} {copy.seatsWord[lang]} · −{tour.lastMinute.discountPct}% ·{" "}
+                {copy.closesIn[lang]} <Countdown departs={tour.lastMinute.departs} />
               </p>
             </div>
           ) : null}
@@ -114,44 +120,33 @@ function TourDetail() {
           <ul className="mt-8 flex flex-wrap gap-2">
             {tour.highlights.map((h) => (
               <li
-                key={h}
+                key={h.es}
                 className="rounded-full bg-surface px-3 py-1.5 text-sm text-ink-soft"
               >
-                {h}
+                {h[lang]}
               </li>
             ))}
           </ul>
 
-          <h2 className="mt-10 font-display text-2xl tracking-tight">Qué incluye</h2>
+          <h2 className="mt-10 font-display text-2xl tracking-tight">{copy.whatsIncluded[lang]}</h2>
           <ul className="mt-4 space-y-2">
             {tour.includes.map((item) => (
-              <li key={item} className="flex items-start gap-2 text-sm text-ink-soft">
+              <li key={item.es} className="flex items-start gap-2 text-sm text-ink-soft">
                 <Check size={16} className="mt-0.5 shrink-0 text-teal" />
-                {item}
+                {item[lang]}
               </li>
             ))}
           </ul>
 
-          <h2 className="mt-8 font-display text-2xl tracking-tight">No incluye</h2>
+          <h2 className="mt-8 font-display text-2xl tracking-tight">{copy.notIncludedTitle[lang]}</h2>
           <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted">
             {tour.notIncluded.map((item) => (
-              <li key={item}>{item}</li>
+              <li key={item.es}>{item[lang]}</li>
             ))}
           </ul>
 
-          <h2 className="mt-8 font-display text-2xl tracking-tight">Punto de encuentro</h2>
-          <p className="mt-2 text-sm text-ink-soft">{tour.meeting}</p>
-
-          {tourReviews.length > 0 ? (
-            <section className="mt-12">
-              <h2 className="font-display text-2xl tracking-tight">Reseñas de este tour</h2>
-              <div className="mt-5 grid gap-4">
-                {tourReviews.map((review) => (
-                  <ReviewCard key={review.id} review={review} />
-                ))}
-              </div>
-            </section>
-          ) : null}
+          <h2 className="mt-8 font-display text-2xl tracking-tight">{copy.meetingPoint[lang]}</h2>
+          <p className="mt-2 text-sm text-ink-soft">{tour.meeting[lang]}</p>
         </article>
 
         <aside className="lg:sticky lg:top-24 lg:self-start">
@@ -159,16 +154,16 @@ function TourDetail() {
             <div className="flex items-end justify-between gap-3">
               <div>
                 {tour.originalPrice && tour.originalPrice > tour.price ? (
-                  <p className="text-sm text-muted line-through">{formatUsd(tour.originalPrice)}</p>
+                  <p className="text-sm text-muted line-through">{formatUsd(tour.originalPrice, lang)}</p>
                 ) : null}
-                <p className="font-display text-4xl tracking-tight">{formatUsd(tour.price)}</p>
-                <p className="text-xs text-muted">por adulto · niño 60%</p>
+                <p className="font-display text-4xl tracking-tight">{formatUsd(tour.price, lang)}</p>
+                <p className="text-xs text-muted">{copy.perAdultChild[lang]}</p>
               </div>
             </div>
 
             <div className="mt-5 space-y-4">
               <div>
-                <Label htmlFor="date">Fecha</Label>
+                <Label htmlFor="date">{copy.dateLabel[lang]}</Label>
                 <Input
                   id="date"
                   type="date"
@@ -178,14 +173,14 @@ function TourDetail() {
                   onChange={(e) => setDate(e.target.value)}
                 />
               </div>
-              <Qty label="Adultos" value={adults} min={1} onChange={setAdults} />
-              <Qty label="Niños" value={children} min={0} onChange={setChildren} />
+              <Qty label={copy.adults[lang]} value={adults} min={1} onChange={setAdults} />
+              <Qty label={copy.children[lang]} value={children} min={0} onChange={setChildren} />
               <div>
-                <Label htmlFor="pickup">Hotel de recogida</Label>
+                <Label htmlFor="pickup">{copy.pickupHotelLabel[lang]}</Label>
                 <Input
                   id="pickup"
                   className="mt-1.5"
-                  placeholder="Ej. Grand Fiesta Americana"
+                  placeholder={copy.pickupPlaceholder[lang]}
                   value={pickup}
                   onChange={(e) => setPickup(e.target.value)}
                 />
@@ -193,16 +188,16 @@ function TourDetail() {
             </div>
 
             <div className="mt-5 flex items-center justify-between border-t border-border pt-4">
-              <span className="text-sm text-muted">Total</span>
-              <span className="font-display text-2xl tabular-nums tracking-tight">{formatUsd(total)}</span>
+              <span className="text-sm text-muted">{copy.total[lang]}</span>
+              <span className="font-display text-2xl tabular-nums tracking-tight">
+                {formatUsd(total, lang)}
+              </span>
             </div>
 
             <Button className="mt-4 w-full" size="lg" onClick={book} disabled={adults < 1}>
-              Reservar ahora
+              {copy.bookNow[lang]}
             </Button>
-            <p className="mt-3 text-center text-xs text-muted">
-              Cancelación gratis hasta 24 h antes. Confirmación inmediata.
-            </p>
+            <p className="mt-3 text-center text-xs text-muted">{copy.cancelNote[lang]}</p>
           </div>
         </aside>
       </div>
@@ -210,17 +205,19 @@ function TourDetail() {
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-bg/95 p-3 backdrop-blur-md lg:hidden">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-1">
           <div>
-            <p className="font-display text-xl tabular-nums leading-none">{formatUsd(total)}</p>
-            <p className="mt-0.5 text-xs text-muted">total · {adults + children} viajeros</p>
+            <p className="font-display text-xl tabular-nums leading-none">{formatUsd(total, lang)}</p>
+            <p className="mt-0.5 text-xs text-muted">
+              {copy.totalPrefix[lang]} {adults + children} {copy.travelersWord[lang]}
+            </p>
           </div>
           <Button size="lg" onClick={book} disabled={adults < 1}>
-            Reservar
+            {copy.book[lang]}
           </Button>
         </div>
       </div>
 
       <section className="mx-auto max-w-6xl px-4 pb-28 sm:px-6 lg:pb-16">
-        <h2 className="font-display text-2xl tracking-tight">También te puede interesar</h2>
+        <h2 className="font-display text-2xl tracking-tight">{copy.alsoLike[lang]}</h2>
         <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {related.map((t) => (
             <TourCard key={t.slug} tour={t} />

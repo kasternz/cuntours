@@ -1,22 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Check, Clock, Shield, Waves } from "lucide-react";
+import { Star } from "lucide-react";
 import { TourCard } from "@/components/tour-card";
-import { ReviewCard } from "@/components/review-card";
-import { TravelerRating, CircleRating } from "@/components/traveler-rating";
+import { CircleRating } from "@/components/traveler-rating";
 import { Countdown } from "@/components/countdown";
 import { FaqList } from "@/components/faq-list";
-import { lastMinuteTours, tours, categoryLabel, totalReviewCount } from "@/lib/tours";
-import { averageRating, ratingDistribution, reviews, ratingLabel } from "@/lib/reviews";
+import { lastMinuteTours, tours, categoryLabel } from "@/lib/tours";
+import { tripAdvisor } from "@/lib/tripadvisor";
 import { formatUsd } from "@/lib/utils";
+import { useLang } from "@/i18n/context";
+import { copy } from "@/i18n/copy";
 
 export const Route = createFileRoute("/")({ component: Home });
 
 function Home() {
+  const { lang } = useLang();
   const flash = lastMinuteTours();
-  const avg = averageRating();
-  const dist = ratingDistribution();
   const featured = tours.filter((t) => !t.lastMinute).slice(0, 6);
-  const published = totalReviewCount();
 
   return (
     <main>
@@ -32,52 +32,54 @@ function Home() {
             Cancún · Riviera Maya
           </p>
           <h1 className="mt-3 max-w-3xl font-display text-4xl leading-[1.05] tracking-tight text-foam sm:text-6xl">
-            Tours de último día, compra directa.
+            {copy.heroTitle[lang]}
           </h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-foam/85 sm:text-lg">
-            Catamarán, cenotes, Chichén Itzá y Tulum. Operadora local: eliges,
-            pagas aquí y mañana estás en el agua o frente a la pirámide.
+            {copy.heroLead[lang]}
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <a
               href="#ultimo-dia"
               className="inline-flex h-12 items-center rounded-[var(--radius-md)] bg-bg px-5 text-sm font-medium text-ink transition-transform duration-150 ease-out hover:bg-bg-elevated active:scale-[0.96]"
             >
-              Ofertas de hoy
+              {copy.todaysDeals[lang]}
             </a>
             <Link
               to="/tours"
               className="inline-flex h-12 items-center gap-2 rounded-[var(--radius-md)] px-5 text-sm font-medium text-foam ring-1 ring-foam/35 transition-transform duration-150 ease-out hover:bg-foam/10 active:scale-[0.96]"
             >
-              Ver catálogo
+              {copy.viewCatalog[lang]}
               <ArrowRight size={16} />
             </Link>
           </div>
-          <div className="mt-10 flex flex-wrap items-center gap-4 text-sm text-foam/85">
-            <span className="inline-flex items-center gap-3">
-              <span className="inline-flex h-10 min-w-10 items-center justify-center rounded-[var(--radius-sm)] bg-teal px-2 font-medium tabular-nums text-foam">
-                {avg.toFixed(1)}
+          <a
+            href={tripAdvisor.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-10 inline-flex items-center gap-3 text-sm text-foam/85 transition-opacity hover:opacity-80"
+          >
+            <span className="inline-flex h-10 min-w-10 items-center justify-center rounded-[var(--radius-sm)] bg-teal px-2 font-medium tabular-nums text-foam">
+              {tripAdvisor.rating}
+            </span>
+            <span>
+              <span className="flex items-center gap-2">
+                <Star size={14} className="fill-current text-foam" />
+                <span className="font-medium text-foam">TripAdvisor</span>
               </span>
-              <span>
-                <span className="flex items-center gap-2">
-                  <CircleRating value={avg} size={12} tone="onDark" />
-                  <span className="font-medium text-foam">{ratingLabel(avg)}</span>
-                </span>
-                <span className="mt-0.5 block text-foam/70">
-                  {published.toLocaleString("es-MX")} reseñas de viajeros · Riviera Maya
-                </span>
+              <span className="mt-0.5 block text-foam/70">
+                {tripAdvisor.reviewCount} {copy.reviewsOnTripAdvisor[lang]}
               </span>
             </span>
-          </div>
+          </a>
         </div>
       </section>
 
       <section className="border-b border-border bg-bg-elevated">
         <div className="mx-auto grid max-w-6xl gap-6 px-4 py-5 sm:grid-cols-3 sm:px-6">
           {[
-            { icon: Clock, t: "Último día", d: "Asientos que salen hoy o mañana" },
-            { icon: Shield, t: "Compra directa", d: "Sin marketplace. Confirmación al instante" },
-            { icon: Waves, t: "Mar y ruinas", d: "Acuáticos y arqueológicos, un solo operador" },
+            { icon: Clock, t: copy.featLastMinuteT[lang], d: copy.featLastMinuteD[lang] },
+            { icon: Shield, t: copy.featDirectT[lang], d: copy.featDirectD[lang] },
+            { icon: Waves, t: copy.featSeaT[lang], d: copy.featSeaD[lang] },
           ].map((item) => (
             <div key={item.t} className="flex items-start gap-3">
               <item.icon className="mt-0.5 size-5 text-teal" strokeWidth={1.7} />
@@ -93,14 +95,14 @@ function Home() {
       <section id="ultimo-dia" className="scroll-mt-24 mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-sm font-medium uppercase tracking-[0.16em] text-teal">Último día</p>
+            <p className="text-sm font-medium uppercase tracking-[0.16em] text-teal">
+              {copy.lastMinuteEyebrow[lang]}
+            </p>
             <h2 className="mt-2 font-display text-3xl tracking-tight sm:text-4xl">
-              Sale hoy. Quedan asientos.
+              {copy.lastMinuteTitle[lang]}
             </h2>
           </div>
-          <p className="max-w-sm text-sm leading-relaxed text-muted">
-            Precio de cierre para salidas con lugares libres. El reloj corre hasta las 18:00.
-          </p>
+          <p className="max-w-sm text-sm leading-relaxed text-muted">{copy.lastMinuteLead[lang]}</p>
         </div>
         <div className="mt-8 grid gap-5 md:grid-cols-3">
           {flash.map((tour) => (
@@ -110,35 +112,36 @@ function Home() {
             >
               <Link to="/tours/$slug" params={{ slug: tour.slug }} className="block">
                 <div className="relative aspect-[16/10] overflow-hidden">
-                  <img src={tour.image} alt={tour.name} className="size-full object-cover" />
+                  <img src={tour.image} alt={tour.name[lang]} className="size-full object-cover" />
                   <span className="absolute left-3 top-3 rounded-full bg-warn px-2.5 py-1 text-xs font-medium text-bg-elevated">
                     −{tour.lastMinute?.discountPct}% ·{" "}
-                    {tour.lastMinute?.departs === "hoy" ? "Hoy" : "Mañana"}
+                    {tour.lastMinute?.departs === "hoy" ? copy.todayBadge[lang] : copy.tomorrowBadge[lang]}
                   </span>
                 </div>
               </Link>
               <div className="flex flex-1 flex-col gap-3 p-5">
                 <p className="text-xs uppercase tracking-wider text-muted">
-                  {categoryLabel(tour.category)}
+                  {categoryLabel(tour.category, lang)}
                 </p>
-                <h3 className="font-display text-2xl leading-snug tracking-tight">{tour.name}</h3>
+                <h3 className="font-display text-2xl leading-snug tracking-tight">{tour.name[lang]}</h3>
                 <p className="text-sm text-muted">
-                  Quedan {tour.lastMinute?.seats} asientos · cierra en{" "}
+                  {copy.seatsLeftPrefix[lang] ? `${copy.seatsLeftPrefix[lang]} ` : ""}
+                  {tour.lastMinute?.seats} {copy.seatsWord[lang]} · {copy.closesIn[lang]}{" "}
                   <Countdown departs={tour.lastMinute!.departs} />
                 </p>
                 <div className="mt-auto flex items-end justify-between pt-2">
                   <div>
                     <p className="text-xs text-muted line-through">
-                      {formatUsd(tour.originalPrice ?? tour.price)}
+                      {formatUsd(tour.originalPrice ?? tour.price, lang)}
                     </p>
-                    <p className="font-display text-3xl tracking-tight">{formatUsd(tour.price)}</p>
+                    <p className="font-display text-3xl tracking-tight">{formatUsd(tour.price, lang)}</p>
                   </div>
                   <Link
                     to="/tours/$slug"
                     params={{ slug: tour.slug }}
                     className="inline-flex h-11 items-center rounded-[var(--radius-md)] bg-teal px-4 text-sm font-medium text-foam transition-transform duration-150 ease-out hover:bg-teal-deep active:scale-[0.96]"
                   >
-                    Comprar
+                    {copy.buy[lang]}
                   </Link>
                 </div>
               </div>
@@ -161,11 +164,9 @@ function Home() {
             />
             <div className="absolute inset-0 bg-ink/45" />
             <div className="relative flex h-full min-h-64 flex-col justify-end p-7">
-              <p className="text-sm uppercase tracking-[0.16em] text-foam/80">Agua</p>
-              <h2 className="mt-1 font-display text-3xl tracking-tight">Actividades acuáticas</h2>
-              <p className="mt-2 max-w-sm text-sm text-foam/80">
-                Catamarán, arrecife, tiburón ballena, cenotes y Cozumel.
-              </p>
+              <p className="text-sm uppercase tracking-[0.16em] text-foam/80">{copy.waterEyebrow[lang]}</p>
+              <h2 className="mt-1 font-display text-3xl tracking-tight">{copy.waterTitle[lang]}</h2>
+              <p className="mt-2 max-w-sm text-sm text-foam/80">{copy.waterDesc[lang]}</p>
             </div>
           </Link>
           <Link
@@ -180,11 +181,9 @@ function Home() {
             />
             <div className="absolute inset-0 bg-ink/45" />
             <div className="relative flex h-full min-h-64 flex-col justify-end p-7">
-              <p className="text-sm uppercase tracking-[0.16em] text-foam/80">Piedra</p>
-              <h2 className="mt-1 font-display text-3xl tracking-tight">Tours arqueológicos</h2>
-              <p className="mt-2 max-w-sm text-sm text-foam/80">
-                Chichén Itzá, Tulum, Cobá y Ek Balam con guía certificado.
-              </p>
+              <p className="text-sm uppercase tracking-[0.16em] text-foam/80">{copy.stoneEyebrow[lang]}</p>
+              <h2 className="mt-1 font-display text-3xl tracking-tight">{copy.stoneTitle[lang]}</h2>
+              <p className="mt-2 max-w-sm text-sm text-foam/80">{copy.stoneDesc[lang]}</p>
             </div>
           </Link>
         </div>
@@ -192,9 +191,9 @@ function Home() {
 
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <h2 className="font-display text-3xl tracking-tight sm:text-4xl">El catálogo</h2>
+          <h2 className="font-display text-3xl tracking-tight sm:text-4xl">{copy.theCatalog[lang]}</h2>
           <Link to="/tours" className="inline-flex items-center gap-1 text-sm font-medium text-teal">
-            Ver todos <ArrowRight size={14} />
+            {copy.viewAll[lang]} <ArrowRight size={14} />
           </Link>
         </div>
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -206,12 +205,12 @@ function Home() {
 
       <section className="border-y border-border bg-bg-elevated">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-          <h2 className="font-display text-3xl tracking-tight">Tres pasos, sin WhatsApp eterno</h2>
+          <h2 className="font-display text-3xl tracking-tight">{copy.threeStepsTitle[lang]}</h2>
           <ol className="mt-8 grid gap-6 md:grid-cols-3">
             {[
-              { n: "01", t: "Elige", d: "Acuático o arqueológico. Filtra por último día si sales mañana." },
-              { n: "02", t: "Compra", d: "Fecha, hotel de recogida y pago aquí. Confirmación al instante." },
-              { n: "03", t: "Sale", d: "Te recogemos. Guía certificado. Cancelación gratis 24 h antes." },
+              { n: "01", t: copy.step1[lang], d: copy.step1D[lang] },
+              { n: "02", t: copy.step2[lang], d: copy.step2D[lang] },
+              { n: "03", t: copy.step3[lang], d: copy.step3D[lang] },
             ].map((step) => (
               <li key={step.n} className="rounded-[var(--radius-lg)] bg-bg p-6 shadow-[var(--shadow-border)]">
                 <p className="font-display text-sm tabular-nums text-teal">{step.n}</p>
@@ -224,26 +223,34 @@ function Home() {
       </section>
 
       <section id="resenas" className="scroll-mt-24 mx-auto max-w-6xl px-4 py-16 sm:px-6">
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,300px)_1fr]">
-          <div>
-            <TravelerRating average={avg} count={published} distribution={dist} />
-            <Link
-              to="/resenas"
-              className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-teal"
-            >
-              Ver todas las reseñas <ArrowRight size={14} />
-            </Link>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {reviews.slice(0, 6).map((review) => (
-              <ReviewCard key={review.id} review={review} />
-            ))}
-          </div>
+        <p className="text-sm font-medium uppercase tracking-[0.16em] text-teal">
+          {copy.travelers[lang]}
+        </p>
+        <h2 className="mt-2 font-display text-3xl tracking-tight sm:text-4xl">
+          {copy.whatTravelersSay[lang]}
+        </h2>
+        <div className="mt-8 flex flex-col items-center gap-4 rounded-[var(--radius-xl)] bg-bg-elevated p-8 text-center shadow-[var(--shadow-border)] sm:p-10">
+          <p className="font-display text-6xl leading-none tracking-tight tabular-nums">
+            {tripAdvisor.rating}
+          </p>
+          <CircleRating value={tripAdvisor.rating} size={20} />
+          <p className="text-sm text-muted">
+            {tripAdvisor.reviewCount} {copy.reviewsOnTripAdvisor[lang]}
+          </p>
+          <a
+            href={tripAdvisor.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex h-12 items-center gap-2 rounded-[var(--radius-md)] bg-teal px-6 text-sm font-medium text-foam transition-transform duration-150 ease-out hover:bg-teal-deep active:scale-[0.96]"
+          >
+            <Star size={16} className="fill-current" />
+            {copy.seeAllOnTripAdvisor[lang]}
+          </a>
         </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
-        <h2 className="font-display text-3xl tracking-tight">Preguntas de último minuto</h2>
+        <h2 className="font-display text-3xl tracking-tight">{copy.faqTitle[lang]}</h2>
         <div className="mt-8">
           <FaqList />
         </div>
@@ -252,23 +259,25 @@ function Home() {
       <section className="bg-ink text-foam">
         <div className="mx-auto flex max-w-6xl flex-col items-start gap-6 px-4 py-16 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div>
-            <h2 className="font-display text-3xl tracking-tight">¿Llegaste ayer y no tienes plan?</h2>
+            <h2 className="font-display text-3xl tracking-tight">{copy.finalCtaTitle[lang]}</h2>
             <p className="mt-2 max-w-lg text-sm leading-relaxed text-foam/75">
-              Las ofertas de último día se liberan cada mañana. Recogida en hotel incluida.
+              {copy.finalCtaBody[lang]}
             </p>
             <ul className="mt-4 space-y-1.5 text-sm text-foam/80">
-              {["Guía certificado INAH / marina", "Grupos chicos", "Cancelación 24 h"].map((t) => (
-                <li key={t} className="flex items-center gap-2">
-                  <Check size={16} className="text-lagoon" /> {t}
-                </li>
-              ))}
+              {[copy.finalCtaBullet1[lang], copy.finalCtaBullet2[lang], copy.finalCtaBullet3[lang]].map(
+                (t) => (
+                  <li key={t} className="flex items-center gap-2">
+                    <Check size={16} className="text-lagoon" /> {t}
+                  </li>
+                ),
+              )}
             </ul>
           </div>
           <a
             href="#ultimo-dia"
             className="inline-flex h-12 items-center rounded-[var(--radius-md)] bg-foam px-6 text-sm font-medium text-ink transition-transform duration-150 ease-out hover:bg-bg active:scale-[0.96]"
           >
-            Ver salidas de hoy
+            {copy.finalCtaButton[lang]}
           </a>
         </div>
       </section>

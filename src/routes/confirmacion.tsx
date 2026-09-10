@@ -4,10 +4,13 @@ import { Calendar, Check, MapPin, Users } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { getTour } from "@/lib/tours";
 import { formatDateLong, formatUsd } from "@/lib/utils";
+import { useLang } from "@/i18n/context";
+import { copy } from "@/i18n/copy";
 
 export const Route = createFileRoute("/confirmacion")({ component: Confirmacion });
 
 function Confirmacion() {
+  const { lang } = useLang();
   const loadLast = useCart((s) => s.loadLast);
   const booking = useCart((s) => s.lastBooking);
 
@@ -18,15 +21,13 @@ function Confirmacion() {
   if (!booking) {
     return (
       <main className="mx-auto max-w-lg px-4 py-20 text-center">
-        <h1 className="font-display text-3xl tracking-tight">No hay una reserva reciente</h1>
-        <p className="mt-3 text-muted">
-          Cuando confirmes un tour, el folio y los datos de recogida aparecen aquí.
-        </p>
+        <h1 className="font-display text-3xl tracking-tight">{copy.noRecentBooking[lang]}</h1>
+        <p className="mt-3 text-muted">{copy.noRecentBookingBody[lang]}</p>
         <Link
           to="/tours"
           className="mt-6 inline-flex h-11 items-center rounded-[var(--radius-md)] bg-teal px-5 text-sm font-medium text-foam"
         >
-          Ver tours
+          {copy.viewTours[lang]}
         </Link>
       </main>
     );
@@ -36,12 +37,14 @@ function Confirmacion() {
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
-      <p className="text-sm font-medium uppercase tracking-[0.16em] text-teal">Compra directa</p>
-      <h1 className="mt-2 font-display text-4xl tracking-tight">Reserva confirmada</h1>
+      <p className="text-sm font-medium uppercase tracking-[0.16em] text-teal">
+        {copy.directPurchase[lang]}
+      </p>
+      <h1 className="mt-2 font-display text-4xl tracking-tight">{copy.bookingConfirmed[lang]}</h1>
       <p className="mt-3 text-base leading-relaxed text-muted">
-        Folio{" "}
-        <span className="font-medium tabular-nums text-ink">{booking.id}</span>. Te recogemos en el
-        hotel. Revisa el correo — y guarda este folio.
+        {copy.folioPrefix[lang]}{" "}
+        <span className="font-medium tabular-nums text-ink">{booking.id}</span>
+        {copy.folioSuffix[lang]}
       </p>
 
       <article className="mt-8 overflow-hidden rounded-[var(--radius-xl)] bg-bg-elevated shadow-[var(--shadow-lift)]">
@@ -49,29 +52,29 @@ function Confirmacion() {
           <img src={tour.image} alt="" className="h-44 w-full object-cover" />
         ) : null}
         <div className="p-6">
-          <h2 className="font-display text-2xl tracking-tight">{booking.tourName}</h2>
+          <h2 className="font-display text-2xl tracking-tight">{tour?.name[lang]}</h2>
           <dl className="mt-5 grid gap-4 sm:grid-cols-2">
-            <Info icon={Calendar} label="Fecha" value={formatDateLong(booking.date)} />
+            <Info icon={Calendar} label={copy.infoDate[lang]} value={formatDateLong(booking.date, lang)} />
             <Info
               icon={Users}
-              label="Viajeros"
-              value={`${booking.adults} adultos${booking.children ? ` · ${booking.children} niños` : ""}`}
+              label={copy.infoTravelers[lang]}
+              value={`${booking.adults} ${copy.adultsWord[lang]}${booking.children ? ` · ${booking.children} ${copy.childrenWord[lang]}` : ""}`}
             />
-            <Info icon={MapPin} label="Recogida" value={booking.pickup} />
+            <Info icon={MapPin} label={copy.infoPickup[lang]} value={booking.pickup} />
             <Info
               icon={Check}
-              label="Pago"
+              label={copy.infoPayment[lang]}
               value={
                 booking.payAtPickup
-                  ? "Al recoger en el hotel"
-                  : `Tarjeta · ${formatUsd(booking.total)}`
+                  ? copy.paidAtPickup[lang]
+                  : `${copy.paidByCard[lang]} ${formatUsd(booking.total, lang)}`
               }
             />
           </dl>
           <div className="mt-6 flex items-center justify-between border-t border-border pt-4">
-            <span className="text-sm text-muted">Total</span>
+            <span className="text-sm text-muted">{copy.total[lang]}</span>
             <span className="font-display text-3xl tabular-nums tracking-tight">
-              {formatUsd(booking.total)}
+              {formatUsd(booking.total, lang)}
             </span>
           </div>
         </div>
@@ -79,9 +82,13 @@ function Confirmacion() {
 
       <ol className="mt-10 grid gap-4 sm:grid-cols-3">
         {[
-          { n: "01", t: "Correo", d: `Confirmación a ${booking.email || "tu correo"}.` },
-          { n: "02", t: "Recogida", d: "El guía confirma hora la tarde anterior." },
-          { n: "03", t: "Sale", d: "Lleva traje de baño, bloqueador y el folio." },
+          {
+            n: "01",
+            t: copy.step1Title[lang],
+            d: `${copy.step1Body[lang]} ${booking.email || copy.step1BodyFallback[lang]}.`,
+          },
+          { n: "02", t: copy.step2Title[lang], d: copy.step2Body[lang] },
+          { n: "03", t: copy.step3Title[lang], d: copy.step3Body[lang] },
         ].map((s) => (
           <li key={s.n} className="rounded-[var(--radius-lg)] bg-bg-elevated p-4 shadow-[var(--shadow-border)]">
             <p className="font-display text-sm tabular-nums text-teal">{s.n}</p>
@@ -96,13 +103,13 @@ function Confirmacion() {
           to="/tours"
           className="inline-flex h-12 items-center rounded-[var(--radius-md)] bg-teal px-5 text-sm font-medium text-foam"
         >
-          Reservar otro tour
+          {copy.bookAnother[lang]}
         </Link>
         <Link
           to="/"
           className="inline-flex h-12 items-center rounded-[var(--radius-md)] px-5 text-sm font-medium text-ink shadow-[var(--shadow-border)]"
         >
-          Volver al inicio
+          {copy.backHome[lang]}
         </Link>
       </div>
     </main>

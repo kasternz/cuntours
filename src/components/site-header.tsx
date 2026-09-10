@@ -2,15 +2,19 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const nav = [
-  { kind: "route" as const, to: "/tours" as const, label: "Tours" },
-  { kind: "hash" as const, href: "/#ultimo-dia", label: "Último día" },
-  { kind: "route" as const, to: "/resenas" as const, label: "Reseñas" },
-];
+import { useLang } from "@/i18n/context";
+import { copy } from "@/i18n/copy";
+import { LanguageToggle } from "@/components/language-toggle";
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const { lang } = useLang();
+
+  const nav = [
+    { kind: "route" as const, to: "/tours" as const, label: copy.navTours[lang] },
+    { kind: "hash" as const, href: "/#ultimo-dia", label: copy.navLastMinute[lang] },
+    { kind: "route" as const, to: "/resenas" as const, label: copy.navReviews[lang] },
+  ];
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/80 bg-bg/90 backdrop-blur-md">
@@ -41,23 +45,27 @@ export function SiteHeader() {
               </Link>
             ),
           )}
+          <LanguageToggle />
           <Link
             to="/tours"
             className="inline-flex h-11 items-center rounded-[var(--radius-md)] bg-teal px-4 text-sm font-medium text-foam transition-transform duration-150 ease-out hover:bg-teal-deep active:scale-[0.96]"
           >
-            Reservar
+            {copy.book[lang]}
           </Link>
         </nav>
 
-        <button
-          type="button"
-          className="inline-flex size-11 items-center justify-center rounded-[var(--radius-sm)] text-ink md:hidden"
-          aria-expanded={open}
-          aria-label={open ? "Cerrar menú" : "Abrir menú"}
-          onClick={() => setOpen((v) => !v)}
-        >
-          {open ? <X size={22} /> : <Menu size={22} />}
-        </button>
+        <div className="flex items-center gap-2 md:hidden">
+          <LanguageToggle />
+          <button
+            type="button"
+            className="inline-flex size-11 items-center justify-center rounded-[var(--radius-sm)] text-ink"
+            aria-expanded={open}
+            aria-label={open ? copy.closeMenu[lang] : copy.openMenu[lang]}
+            onClick={() => setOpen((v) => !v)}
+          >
+            {open ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
       </div>
 
       <div
@@ -93,7 +101,7 @@ export function SiteHeader() {
             className="mt-2 inline-flex h-11 items-center justify-center rounded-[var(--radius-md)] bg-teal text-sm font-medium text-foam"
             onClick={() => setOpen(false)}
           >
-            Reservar
+            {copy.book[lang]}
           </Link>
         </nav>
       </div>

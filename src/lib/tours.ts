@@ -1,4 +1,7 @@
+import type { Lang } from "@/i18n/copy";
+
 export type Category = "acuatico" | "arqueologico";
+export type Localized = { es: string; en: string };
 
 export type LastMinute = {
   seats: number;
@@ -8,267 +11,394 @@ export type LastMinute = {
 
 export type Tour = {
   slug: string;
-  name: string;
+  name: Localized;
   category: Category;
-  tagline: string;
-  description: string;
-  duration: string;
-  location: string;
-  meeting: string;
-  includes: string[];
-  notIncluded: string[];
-  highlights: string[];
+  tagline: Localized;
+  description: Localized;
+  duration: Localized;
+  location: Localized;
+  meeting: Localized;
+  includes: Localized[];
+  notIncluded: Localized[];
+  highlights: Localized[];
   price: number;
   originalPrice?: number;
   rating: number;
   reviewCount: number;
   image: string;
   lastMinute?: LastMinute;
-  groupSize: string;
-  languages: string;
+  groupSize: Localized;
+  languages: Localized;
 };
 
 export const tours: Tour[] = [
   {
     slug: "catamaran-isla-mujeres",
-    name: "Catamarán a Isla Mujeres",
+    name: { es: "Catamarán a Isla Mujeres", en: "Isla Mujeres Catamaran" },
     category: "acuatico",
-    tagline: "Vela, snorkel y playa en un solo día",
-    description:
-      "Zarpe desde Cancún en un catamarán de cubierta abierta. Snorkel en el arrecife, open bar tropical y tiempo libre en Playa Norte, una de las bahías más calmadas del Caribe. Guía bilingüe y toallas a bordo.",
-    duration: "7 horas",
-    location: "Cancún · Isla Mujeres",
-    meeting: "Recogida en hotel zona hotelera y downtown",
+    tagline: {
+      es: "Vela, snorkel y playa en un solo día",
+      en: "Sailing, snorkeling, and beach in one day",
+    },
+    description: {
+      es: "Zarpe desde Cancún en un catamarán de cubierta abierta. Snorkel en el arrecife, open bar tropical y tiempo libre en Playa Norte, una de las bahías más calmadas del Caribe. Guía bilingüe y toallas a bordo.",
+      en: "Set sail from Cancún on an open-deck catamaran. Snorkel the reef, tropical open bar, and free time on Playa Norte, one of the calmest bays in the Caribbean. Bilingual guide and towels on board.",
+    },
+    duration: { es: "7 horas", en: "7 hours" },
+    location: { es: "Cancún · Isla Mujeres", en: "Cancún · Isla Mujeres" },
+    meeting: {
+      es: "Recogida en hotel zona hotelera y downtown",
+      en: "Hotel pickup in the hotel zone and downtown",
+    },
     includes: [
-      "Traslado ida y vuelta desde el hotel",
-      "Snorkel con equipo",
-      "Open bar nacional",
-      "Buffet ligero a bordo",
-      "Tiempo libre en Playa Norte",
+      { es: "Traslado ida y vuelta desde el hotel", en: "Round-trip hotel transfer" },
+      { es: "Snorkel con equipo", en: "Snorkeling with gear" },
+      { es: "Open bar nacional", en: "Domestic open bar" },
+      { es: "Buffet ligero a bordo", en: "Light buffet on board" },
+      { es: "Tiempo libre en Playa Norte", en: "Free time on Playa Norte" },
     ],
-    notIncluded: ["Propinas", "Fotos profesionales", "Impuesto de muelle (aprox. $12 USD)"],
-    highlights: ["Arrecife El Meco", "Playa Norte", "Barra libre"],
+    notIncluded: [
+      { es: "Propinas", en: "Tips" },
+      { es: "Fotos profesionales", en: "Professional photos" },
+      { es: "Impuesto de muelle (aprox. $12 USD)", en: "Pier tax (approx. $12 USD)" },
+    ],
+    highlights: [
+      { es: "Arrecife El Meco", en: "El Meco reef" },
+      { es: "Playa Norte", en: "Playa Norte" },
+      { es: "Barra libre", en: "Open bar" },
+    ],
     price: 89,
     originalPrice: 129,
     rating: 4.8,
     reviewCount: 1842,
     image: "/images/catamaran-isla.jpg",
     lastMinute: { seats: 6, discountPct: 31, departs: "hoy" },
-    groupSize: "Hasta 40",
-    languages: "Español e inglés",
+    groupSize: { es: "Hasta 40", en: "Up to 40" },
+    languages: { es: "Español e inglés", en: "Spanish and English" },
   },
   {
     slug: "snorkel-arrecife-cancun",
-    name: "Snorkel en el arrecife de Cancún",
+    name: { es: "Snorkel en el arrecife de Cancún", en: "Cancún Reef Snorkeling" },
     category: "acuatico",
-    tagline: "Parque Marino Nacional, agua cristalina",
-    description:
-      "Salida temprana hacia el Parque Marino. Dos paradas de snorkel sobre coral de cerebro y abanicos, con pez ángel, loro y a veces rayas. Grupos reducidos y briefing de conservación.",
-    duration: "4 horas",
-    location: "Punta Nizuc · Cancún",
-    meeting: "Muelle Punta Nizuc, traslado opcional",
+    tagline: {
+      es: "Parque Marino Nacional, agua cristalina",
+      en: "National Marine Park, crystal-clear water",
+    },
+    description: {
+      es: "Salida temprana hacia el Parque Marino. Dos paradas de snorkel sobre coral de cerebro y abanicos, con pez ángel, loro y a veces rayas. Grupos reducidos y briefing de conservación.",
+      en: "Early departure to the Marine Park. Two snorkel stops over brain coral and sea fans, with angelfish, parrotfish, and sometimes rays. Small groups and a conservation briefing.",
+    },
+    duration: { es: "4 horas", en: "4 hours" },
+    location: { es: "Punta Nizuc · Cancún", en: "Punta Nizuc · Cancún" },
+    meeting: {
+      es: "Muelle Punta Nizuc, traslado opcional",
+      en: "Punta Nizuc pier, optional transfer",
+    },
     includes: [
-      "Lancha exclusiva de grupo pequeño",
-      "Equipo de snorkel y chaleco",
-      "Guía certificado",
-      "Agua y fruta",
-      "Seguro de viajero",
+      { es: "Lancha exclusiva de grupo pequeño", en: "Exclusive small-group boat" },
+      { es: "Equipo de snorkel y chaleco", en: "Snorkel gear and life vest" },
+      { es: "Guía certificado", en: "Certified guide" },
+      { es: "Agua y fruta", en: "Water and fruit" },
+      { es: "Seguro de viajero", en: "Traveler insurance" },
     ],
-    notIncluded: ["Fotos", "Propinas", "Parque marino si aplica"],
-    highlights: ["Dos arrecifes", "Grupo pequeño", "Salida matutina"],
+    notIncluded: [
+      { es: "Fotos", en: "Photos" },
+      { es: "Propinas", en: "Tips" },
+      { es: "Parque marino si aplica", en: "Marine park fee if applicable" },
+    ],
+    highlights: [
+      { es: "Dos arrecifes", en: "Two reefs" },
+      { es: "Grupo pequeño", en: "Small group" },
+      { es: "Salida matutina", en: "Morning departure" },
+    ],
     price: 59,
     rating: 4.7,
     reviewCount: 963,
     image: "/images/snorkel-arrecife.jpg",
-    groupSize: "Hasta 12",
-    languages: "Español e inglés",
+    groupSize: { es: "Hasta 12", en: "Up to 12" },
+    languages: { es: "Español e inglés", en: "Spanish and English" },
   },
   {
     slug: "tiburon-ballena",
-    name: "Nado con tiburón ballena",
+    name: { es: "Nado con tiburón ballena", en: "Whale Shark Swim" },
     category: "acuatico",
-    tagline: "El pez más grande del planeta, a tu lado",
-    description:
-      "Temporada de junio a septiembre. Navegación hacia Isla Contoy / Isla Mujeres para nadar junto a tiburones ballena en su ruta de alimentación. Solo se permite un número limitado de nadadores por animal.",
-    duration: "8 horas",
-    location: "Isla Mujeres · mar abierto",
-    meeting: "Recogida en hotel 6:30–7:00",
+    tagline: {
+      es: "El pez más grande del planeta, a tu lado",
+      en: "The largest fish on the planet, right beside you",
+    },
+    description: {
+      es: "Temporada de junio a septiembre. Navegación hacia Isla Contoy / Isla Mujeres para nadar junto a tiburones ballena en su ruta de alimentación. Solo se permite un número limitado de nadadores por animal.",
+      en: "Season runs June to September. Sail out toward Isla Contoy / Isla Mujeres to swim alongside whale sharks on their feeding route. Only a limited number of swimmers are allowed per animal.",
+    },
+    duration: { es: "8 horas", en: "8 hours" },
+    location: { es: "Isla Mujeres · mar abierto", en: "Isla Mujeres · open sea" },
+    meeting: { es: "Recogida en hotel 6:30–7:00", en: "Hotel pickup 6:30–7:00 AM" },
     includes: [
-      "Traslado hotel",
-      "Desayuno ligero y almuerzo",
-      "Equipo de snorkel",
-      "Permiso de avistamiento",
-      "Guía marino",
+      { es: "Traslado hotel", en: "Hotel transfer" },
+      { es: "Desayuno ligero y almuerzo", en: "Light breakfast and lunch" },
+      { es: "Equipo de snorkel", en: "Snorkel gear" },
+      { es: "Permiso de avistamiento", en: "Sighting permit" },
+      { es: "Guía marino", en: "Marine guide" },
     ],
-    notIncluded: ["Propinas", "Toalla personal"],
-    highlights: ["Encuentro silvestre", "Isla Contoy", "Grupo regulado"],
+    notIncluded: [
+      { es: "Propinas", en: "Tips" },
+      { es: "Toalla personal", en: "Personal towel" },
+    ],
+    highlights: [
+      { es: "Encuentro silvestre", en: "Wildlife encounter" },
+      { es: "Isla Contoy", en: "Isla Contoy" },
+      { es: "Grupo regulado", en: "Regulated group size" },
+    ],
     price: 159,
     originalPrice: 189,
     rating: 4.9,
     reviewCount: 721,
     image: "/images/tiburon-ballena.jpg",
-    groupSize: "Hasta 18",
-    languages: "Español e inglés",
+    groupSize: { es: "Hasta 18", en: "Up to 18" },
+    languages: { es: "Español e inglés", en: "Spanish and English" },
   },
   {
     slug: "cenotes-sagrados",
-    name: "Cenotes sagrados",
+    name: { es: "Cenotes sagrados", en: "Sacred Cenotes" },
     category: "acuatico",
-    tagline: "Agua esmeralda bajo la selva maya",
-    description:
-      "Tres cenotes de la riviera: uno abierto, uno semi-abierto y una caverna con estalactitas. Casco, chaleco y guía espeleólogo. Ideal si quieres agua dulce y sombra lejos de la playa.",
-    duration: "6 horas",
-    location: "Ruta de los Cenotes · Puerto Morelos",
-    meeting: "Recogida en hotel Cancún o Playa del Carmen",
+    tagline: {
+      es: "Agua esmeralda bajo la selva maya",
+      en: "Emerald water beneath the Maya jungle",
+    },
+    description: {
+      es: "Tres cenotes de la riviera: uno abierto, uno semi-abierto y una caverna con estalactitas. Casco, chaleco y guía espeleólogo. Ideal si quieres agua dulce y sombra lejos de la playa.",
+      en: "Three cenotes of the riviera: one open-air, one semi-open, and a cave with stalactites. Helmet, vest, and a caving guide included. Ideal if you want fresh water and shade away from the beach.",
+    },
+    duration: { es: "6 horas", en: "6 hours" },
+    location: { es: "Ruta de los Cenotes · Puerto Morelos", en: "Cenotes Route · Puerto Morelos" },
+    meeting: {
+      es: "Recogida en hotel Cancún o Playa del Carmen",
+      en: "Hotel pickup in Cancún or Playa del Carmen",
+    },
     includes: [
-      "Traslado",
-      "Entrada a tres cenotes",
-      "Equipo de snorkel y casco",
-      "Almuerzo regional",
-      "Regaderas y lockers",
+      { es: "Traslado", en: "Transfer" },
+      { es: "Entrada a tres cenotes", en: "Entry to three cenotes" },
+      { es: "Equipo de snorkel y casco", en: "Snorkel gear and helmet" },
+      { es: "Almuerzo regional", en: "Regional lunch" },
+      { es: "Regaderas y lockers", en: "Showers and lockers" },
     ],
-    notIncluded: ["Fotos", "Propinas"],
-    highlights: ["Caverna iluminada", "Almuerzo maya", "Poca gente"],
+    notIncluded: [
+      { es: "Fotos", en: "Photos" },
+      { es: "Propinas", en: "Tips" },
+    ],
+    highlights: [
+      { es: "Caverna iluminada", en: "Lit cave" },
+      { es: "Almuerzo maya", en: "Maya lunch" },
+      { es: "Poca gente", en: "Few crowds" },
+    ],
     price: 79,
     rating: 4.8,
     reviewCount: 1104,
     image: "/images/cenotes.jpg",
-    groupSize: "Hasta 16",
-    languages: "Español, inglés y francés",
+    groupSize: { es: "Hasta 16", en: "Up to 16" },
+    languages: { es: "Español, inglés y francés", en: "Spanish, English, and French" },
   },
   {
     slug: "cozumel-palancar",
-    name: "Cozumel: arrecife Palancar",
+    name: { es: "Cozumel: arrecife Palancar", en: "Cozumel: Palancar Reef" },
     category: "acuatico",
-    tagline: "El arrecife más claro del Caribe mexicano",
-    description:
-      "Ferry a Cozumel y dos inmersiones de snorkel o bautizo de buceo en Palancar Gardens. Corriente suave, visibilidad de 30 metros y pared de coral. Incluye almuerzo en la isla.",
-    duration: "9 horas",
-    location: "Cozumel",
-    meeting: "Ferry Playa del Carmen, traslado desde Cancún",
+    tagline: {
+      es: "El arrecife más claro del Caribe mexicano",
+      en: "The clearest reef in the Mexican Caribbean",
+    },
+    description: {
+      es: "Ferry a Cozumel y dos inmersiones de snorkel o bautizo de buceo en Palancar Gardens. Corriente suave, visibilidad de 30 metros y pared de coral. Incluye almuerzo en la isla.",
+      en: "Ferry to Cozumel and two snorkel dives or a discovery dive at Palancar Gardens. Gentle current, 30 meters of visibility, and a coral wall. Includes lunch on the island.",
+    },
+    duration: { es: "9 horas", en: "9 hours" },
+    location: { es: "Cozumel", en: "Cozumel" },
+    meeting: {
+      es: "Ferry Playa del Carmen, traslado desde Cancún",
+      en: "Playa del Carmen ferry, transfer from Cancún",
+    },
     includes: [
-      "Traslado Cancún–Playa",
-      "Ferry ida y vuelta",
-      "Dos sitios de arrecife",
-      "Equipo completo",
-      "Almuerzo en muelle",
+      { es: "Traslado Cancún–Playa", en: "Cancún–Playa transfer" },
+      { es: "Ferry ida y vuelta", en: "Round-trip ferry" },
+      { es: "Dos sitios de arrecife", en: "Two reef sites" },
+      { es: "Equipo completo", en: "Full gear" },
+      { es: "Almuerzo en muelle", en: "Lunch at the pier" },
     ],
-    notIncluded: ["Propinas de tripulación", "Nitrox"],
-    highlights: ["Visibilidad extrema", "Palancar", "Día completo"],
+    notIncluded: [
+      { es: "Propinas de tripulación", en: "Crew tips" },
+      { es: "Nitrox", en: "Nitrox" },
+    ],
+    highlights: [
+      { es: "Visibilidad extrema", en: "Extreme visibility" },
+      { es: "Palancar", en: "Palancar" },
+      { es: "Día completo", en: "Full day" },
+    ],
     price: 129,
     rating: 4.8,
     reviewCount: 588,
     image: "/images/cozumel.jpg",
-    groupSize: "Hasta 20",
-    languages: "Español e inglés",
+    groupSize: { es: "Hasta 20", en: "Up to 20" },
+    languages: { es: "Español e inglés", en: "Spanish and English" },
   },
   {
     slug: "chichen-itza-amanecer",
-    name: "Chichén Itzá al amanecer",
+    name: { es: "Chichén Itzá al amanecer", en: "Chichén Itzá at Sunrise" },
     category: "arqueologico",
-    tagline: "El Castillo sin filas, con luz dorada",
-    description:
-      "Salida de madrugada para entrar con el primer grupo. Recorrido de 2 horas con arqueólogo: El Castillo, el Juego de Pelota, el Observatorio y el Cenote Sagrado. Almuerzo yucateco y parada en cenote para nadar de regreso.",
-    duration: "12 horas",
-    location: "Chichén Itzá · Yucatán",
-    meeting: "Recogida 5:30–6:00 en hotel",
+    tagline: {
+      es: "El Castillo sin filas, con luz dorada",
+      en: "El Castillo with no lines, in golden light",
+    },
+    description: {
+      es: "Salida de madrugada para entrar con el primer grupo. Recorrido de 2 horas con arqueólogo: El Castillo, el Juego de Pelota, el Observatorio y el Cenote Sagrado. Almuerzo yucateco y parada en cenote para nadar de regreso.",
+      en: "Pre-dawn departure to enter with the first group. A 2-hour tour with an archaeologist: El Castillo, the Ball Court, the Observatory, and the Sacred Cenote. Yucatecan lunch and a cenote swim stop on the way back.",
+    },
+    duration: { es: "12 horas", en: "12 hours" },
+    location: { es: "Chichén Itzá · Yucatán", en: "Chichén Itzá · Yucatán" },
+    meeting: { es: "Recogida 5:30–6:00 en hotel", en: "Hotel pickup 5:30–6:00 AM" },
     includes: [
-      "Traslado en van climatizada",
-      "Entrada a la zona arqueológica",
-      "Guía arqueólogo certificado",
-      "Almuerzo buffet",
-      "Parada en cenote",
+      { es: "Traslado en van climatizada", en: "Air-conditioned van transfer" },
+      { es: "Entrada a la zona arqueológica", en: "Archaeological site entry" },
+      { es: "Guía arqueólogo certificado", en: "Certified archaeologist guide" },
+      { es: "Almuerzo buffet", en: "Buffet lunch" },
+      { es: "Parada en cenote", en: "Cenote stop" },
     ],
-    notIncluded: ["Propinas", "Video oficial INAH", "Souvenirs"],
-    highlights: ["Acceso temprano", "Guía arqueólogo", "Cenote de regreso"],
+    notIncluded: [
+      { es: "Propinas", en: "Tips" },
+      { es: "Video oficial INAH", en: "Official INAH video" },
+      { es: "Souvenirs", en: "Souvenirs" },
+    ],
+    highlights: [
+      { es: "Acceso temprano", en: "Early access" },
+      { es: "Guía arqueólogo", en: "Archaeologist guide" },
+      { es: "Cenote de regreso", en: "Cenote on the way back" },
+    ],
     price: 99,
     originalPrice: 139,
     rating: 4.9,
     reviewCount: 2310,
     image: "/images/chichen-itza.jpg",
     lastMinute: { seats: 4, discountPct: 29, departs: "hoy" },
-    groupSize: "Hasta 14",
-    languages: "Español e inglés",
+    groupSize: { es: "Hasta 14", en: "Up to 14" },
+    languages: { es: "Español e inglés", en: "Spanish and English" },
   },
   {
     slug: "tulum-playa",
-    name: "Tulum ruinas y playa",
+    name: { es: "Tulum ruinas y playa", en: "Tulum Ruins and Beach" },
     category: "arqueologico",
-    tagline: "Templo sobre el acantilado, luego el mar",
-    description:
-      "Recorrido por la zona amurallada de Tulum con historiador: El Castillo, el Templo de los Frescos y vistas al Caribe. Después, tiempo libre en la playa de arena blanca bajo las ruinas. Grupos de mañana para evitar el calor pico.",
-    duration: "7 horas",
-    location: "Tulum",
-    meeting: "Recogida en hotel Cancún / Riviera Maya",
+    tagline: {
+      es: "Templo sobre el acantilado, luego el mar",
+      en: "A temple on the cliff, then the sea",
+    },
+    description: {
+      es: "Recorrido por la zona amurallada de Tulum con historiador: El Castillo, el Templo de los Frescos y vistas al Caribe. Después, tiempo libre en la playa de arena blanca bajo las ruinas. Grupos de mañana para evitar el calor pico.",
+      en: "A tour of Tulum's walled city with a historian: El Castillo, the Temple of the Frescoes, and Caribbean views. Afterward, free time on the white-sand beach beneath the ruins. Morning groups to avoid peak heat.",
+    },
+    duration: { es: "7 horas", en: "7 hours" },
+    location: { es: "Tulum", en: "Tulum" },
+    meeting: {
+      es: "Recogida en hotel Cancún / Riviera Maya",
+      en: "Hotel pickup in Cancún / Riviera Maya",
+    },
     includes: [
-      "Traslado",
-      "Entrada a ruinas",
-      "Guía historiador",
-      "Tiempo de playa",
-      "Agua y refrigerio",
+      { es: "Traslado", en: "Transfer" },
+      { es: "Entrada a ruinas", en: "Ruins entry" },
+      { es: "Guía historiador", en: "Historian guide" },
+      { es: "Tiempo de playa", en: "Beach time" },
+      { es: "Agua y refrigerio", en: "Water and a snack" },
     ],
-    notIncluded: ["Almuerzo", "Sombrilla de playa", "Propinas"],
-    highlights: ["Acantilado Caribe", "Playa privada del sitio", "Grupo matutino"],
+    notIncluded: [
+      { es: "Almuerzo", en: "Lunch" },
+      { es: "Sombrilla de playa", en: "Beach umbrella" },
+      { es: "Propinas", en: "Tips" },
+    ],
+    highlights: [
+      { es: "Acantilado Caribe", en: "Caribbean cliff" },
+      { es: "Playa privada del sitio", en: "The site's private beach" },
+      { es: "Grupo matutino", en: "Morning group" },
+    ],
     price: 69,
     rating: 4.7,
     reviewCount: 1566,
     image: "/images/tulum.jpg",
-    groupSize: "Hasta 18",
-    languages: "Español e inglés",
+    groupSize: { es: "Hasta 18", en: "Up to 18" },
+    languages: { es: "Español e inglés", en: "Spanish and English" },
   },
   {
     slug: "coba-selva",
-    name: "Cobá y selva",
+    name: { es: "Cobá y selva", en: "Cobá and Jungle" },
     category: "arqueologico",
-    tagline: "Pirámide en la selva y lagunas mayas",
-    description:
-      "Cobá se recorre en bici entre sacbés (calzadas blancas). Subida opcional a Nohoch Mul, la pirámide más alta de Quintana Roo. Después, almuerzo en pueblo maya y nado en un cenote de caverna.",
-    duration: "10 horas",
-    location: "Cobá · Quintana Roo",
-    meeting: "Recogida en hotel",
+    tagline: {
+      es: "Pirámide en la selva y lagunas mayas",
+      en: "A jungle pyramid and Maya lagoons",
+    },
+    description: {
+      es: "Cobá se recorre en bici entre sacbés (calzadas blancas). Subida opcional a Nohoch Mul, la pirámide más alta de Quintana Roo. Después, almuerzo en pueblo maya y nado en un cenote de caverna.",
+      en: "Cobá is explored by bike along sacbés (white causeways). Optional climb up Nohoch Mul, the tallest pyramid in Quintana Roo. Afterward, lunch in a Maya village and a swim in a cave cenote.",
+    },
+    duration: { es: "10 horas", en: "10 hours" },
+    location: { es: "Cobá · Quintana Roo", en: "Cobá · Quintana Roo" },
+    meeting: { es: "Recogida en hotel", en: "Hotel pickup" },
     includes: [
-      "Traslado",
-      "Bicicleta en el sitio",
-      "Entrada a Cobá",
-      "Guía local",
-      "Almuerzo y cenote",
+      { es: "Traslado", en: "Transfer" },
+      { es: "Bicicleta en el sitio", en: "Bike at the site" },
+      { es: "Entrada a Cobá", en: "Cobá entry" },
+      { es: "Guía local", en: "Local guide" },
+      { es: "Almuerzo y cenote", en: "Lunch and cenote" },
     ],
-    notIncluded: ["Propinas", "Lockers extra"],
-    highlights: ["Nohoch Mul", "Bici en la selva", "Pueblo maya"],
+    notIncluded: [
+      { es: "Propinas", en: "Tips" },
+      { es: "Lockers extra", en: "Extra lockers" },
+    ],
+    highlights: [
+      { es: "Nohoch Mul", en: "Nohoch Mul" },
+      { es: "Bici en la selva", en: "Jungle biking" },
+      { es: "Pueblo maya", en: "Maya village" },
+    ],
     price: 89,
     rating: 4.8,
     reviewCount: 874,
     image: "/images/coba.jpg",
-    groupSize: "Hasta 16",
-    languages: "Español e inglés",
+    groupSize: { es: "Hasta 16", en: "Up to 16" },
+    languages: { es: "Español e inglés", en: "Spanish and English" },
   },
   {
     slug: "ek-balam-cenote",
-    name: "Ek Balam y cenote",
+    name: { es: "Ek Balam y cenote", en: "Ek Balam and Cenote" },
     category: "arqueologico",
-    tagline: "Estuco maya intacto y agua de caverna",
-    description:
-      "Ek Balam guarda uno de los frisos de estuco mejor conservados del mundo maya. Recorrido con epigrafista, subida a la Acrópolis y nado en un cenote cercano de agua turquesa. Menos visitado que Chichén: luz y silencio.",
-    duration: "11 horas",
-    location: "Ek Balam · Yucatán",
-    meeting: "Recogida 6:00 en hotel Cancún",
+    tagline: {
+      es: "Estuco maya intacto y agua de caverna",
+      en: "Intact Maya stucco and cave water",
+    },
+    description: {
+      es: "Ek Balam guarda uno de los frisos de estuco mejor conservados del mundo maya. Recorrido con epigrafista, subida a la Acrópolis y nado en un cenote cercano de agua turquesa. Menos visitado que Chichén: luz y silencio.",
+      en: "Ek Balam holds one of the best-preserved stucco friezes in the Maya world. A tour with an epigrapher, a climb up the Acropolis, and a swim in a nearby turquoise cenote. Less visited than Chichén: light and quiet.",
+    },
+    duration: { es: "11 horas", en: "11 hours" },
+    location: { es: "Ek Balam · Yucatán", en: "Ek Balam · Yucatán" },
+    meeting: { es: "Recogida 6:00 en hotel Cancún", en: "Hotel pickup 6:00 AM in Cancún" },
     includes: [
-      "Traslado",
-      "Entrada a Ek Balam",
-      "Guía epigrafista",
-      "Cenote y almuerzo",
-      "Agua todo el día",
+      { es: "Traslado", en: "Transfer" },
+      { es: "Entrada a Ek Balam", en: "Ek Balam entry" },
+      { es: "Guía epigrafista", en: "Epigrapher guide" },
+      { es: "Cenote y almuerzo", en: "Cenote and lunch" },
+      { es: "Agua todo el día", en: "Water all day" },
     ],
-    notIncluded: ["Propinas", "Tirolina opcional"],
-    highlights: ["Friso del jaguar", "Poca afluencia", "Cenote privado"],
+    notIncluded: [
+      { es: "Propinas", en: "Tips" },
+      { es: "Tirolina opcional", en: "Optional zipline" },
+    ],
+    highlights: [
+      { es: "Friso del jaguar", en: "Jaguar frieze" },
+      { es: "Poca afluencia", en: "Low crowds" },
+      { es: "Cenote privado", en: "Private cenote" },
+    ],
     price: 85,
     originalPrice: 109,
     rating: 4.9,
     reviewCount: 412,
     image: "/images/ek-balam.jpg",
     lastMinute: { seats: 8, discountPct: 22, departs: "manana" },
-    groupSize: "Hasta 12",
-    languages: "Español e inglés",
+    groupSize: { es: "Hasta 12", en: "Up to 12" },
+    languages: { es: "Español e inglés", en: "Spanish and English" },
   },
 ];
 
@@ -306,6 +436,12 @@ export function totalReviewCount() {
   return tours.reduce((acc, t) => acc + t.reviewCount, 0);
 }
 
-export function categoryLabel(category: Category) {
-  return category === "acuatico" ? "Acuático" : "Arqueológico";
+export function categoryLabel(category: Category, lang: Lang) {
+  return category === "acuatico"
+    ? lang === "es"
+      ? "Acuático"
+      : "Water"
+    : lang === "es"
+      ? "Arqueológico"
+      : "Archaeological";
 }

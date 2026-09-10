@@ -1,4 +1,5 @@
 import { Minus, Plus } from "lucide-react";
+import { useLang } from "@/i18n/context";
 
 export function Qty({
   label,
@@ -13,6 +14,9 @@ export function Qty({
   max?: number;
   onChange: (n: number) => void;
 }) {
+  const { lang } = useLang();
+  const lessWord = lang === "es" ? "Menos" : "Fewer";
+  const moreWord = lang === "es" ? "Más" : "More";
   return (
     <div className="flex items-center justify-between gap-3">
       <span className="text-sm text-ink-soft">{label}</span>
@@ -20,7 +24,7 @@ export function Qty({
         <button
           type="button"
           className="inline-flex size-11 items-center justify-center rounded-[var(--radius-sm)] bg-surface text-ink transition-transform duration-150 ease-out active:scale-[0.96] disabled:opacity-40"
-          aria-label={`Menos ${label}`}
+          aria-label={`${lessWord} ${label}`}
           disabled={value <= min}
           onClick={() => onChange(Math.max(min, value - 1))}
         >
@@ -30,7 +34,7 @@ export function Qty({
         <button
           type="button"
           className="inline-flex size-11 items-center justify-center rounded-[var(--radius-sm)] bg-surface text-ink transition-transform duration-150 ease-out active:scale-[0.96] disabled:opacity-40"
-          aria-label={`Más ${label}`}
+          aria-label={`${moreWord} ${label}`}
           disabled={value >= max}
           onClick={() => onChange(Math.min(max, value + 1))}
         >

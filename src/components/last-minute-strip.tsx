@@ -1,8 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { lastMinuteTours } from "@/lib/tours";
 import { Countdown } from "./countdown";
+import { useLang } from "@/i18n/context";
+import { copy } from "@/i18n/copy";
 
 export function LastMinuteStrip() {
+  const { lang } = useLang();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const flash = lastMinuteTours();
   if (!flash.length) return null;
@@ -15,9 +18,9 @@ export function LastMinuteStrip() {
     <div className="bg-teal-deep text-foam">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-sm sm:px-6">
         <p className="min-w-0">
-          <span className="font-medium">Último día.</span>{" "}
+          <span className="font-medium">{copy.lastMinuteEyebrow[lang]}.</span>{" "}
           <span className="text-foam/80">
-            {seats} asientos · cierra en{" "}
+            {seats} {copy.seatsWord[lang]} · {copy.closesIn[lang]}{" "}
             <Countdown departs={soonest.lastMinute!.departs} />
           </span>
         </p>
@@ -26,7 +29,7 @@ export function LastMinuteStrip() {
           hash="ultimo-dia"
           className="shrink-0 font-medium text-foam underline-offset-4 hover:underline"
         >
-          Ver ofertas
+          {copy.seeDeals[lang]}
         </Link>
       </div>
     </div>
