@@ -8,6 +8,7 @@ import { getTour, tourPrice } from "@/lib/tours";
 import { formatDateLong, formatUsd } from "@/lib/utils";
 import { useLang } from "@/i18n/context";
 import { copy } from "@/i18n/copy";
+import { submitBooking } from "@/lib/booking-fn";
 
 export const Route = createFileRoute("/checkout")({
   component: CheckoutPage,
@@ -47,7 +48,7 @@ export function CheckoutPage() {
     );
   }
 
-  function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     if (!guest.name.trim() || !guest.email.trim() || !guest.phone.trim()) {
@@ -73,7 +74,41 @@ export function CheckoutPage() {
         return;
       }
     }
+
     setSubmitting(true);
+    const id = `CT-${Math.floor(10000 + Math.random() * 90000)}`;
+    try {
+      const result = await submitBooking({
+        data: {
+          bookingId: id,
+          tourName: tour!.name.es,
+          date: formatDateLong(draft!.date, "es"),
+          adults: draft!.adults,
+          children: draft!.children,
+          tourType: guest.tourType,
+          pickup: draft!.pickup,
+          pickupTime: guest.pickupTime,
+          dietary: guest.dietary,
+          mobility: guest.mobility,
+          notes: guest.notes,
+          guestName: guest.name,
+          guestEmail: guest.email,
+          guestPhone: guest.phone,
+          payAtPickup: guest.payAtPickup,
+          total,
+        },
+      });
+      if (!result.sent) {
+        setSubmitting(false);
+        setError(copy.errEmailSend[lang]);
+        return;
+      }
+    } catch {
+      setSubmitting(false);
+      setError(copy.errEmailSend[lang]);
+      return;
+    }
+
     const booking = confirm();
     if (!booking) {
       setSubmitting(false);
@@ -132,8 +167,76 @@ export function CheckoutPage() {
               />
             </div>
           </div>
+        </fieldset>
+
+        <fieldset className="space-y-4">
+          <legend className="font-display text-xl tracking-tight">
+            {lang === "es" ? "Detalles para coordinar" : "Details to coordinate"}
+          </legend>
           <div>
-            <Label htmlFor="notes">{copy.notesLabel[lang]}</Label>
+            <Label>{copy.tourTypeLabel[lang]}</Label>
+            <div className="mt-1.5 grid grid-cols-2 gap-2">
+              {(["compartido", "privado"] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => patchGuest({ tourType: t })}
+                  className={`h-11 rounded-[var(--radius-md)] text-sm font-medium transition-colors ${
+                    guest.tourType === t
+                      ? "bg-teal text-foam"
+                      : "bg-bg-elevated text-ink-soft shadow-[var(--shadow-border)]"
+                  }`}
+                >
+                  {t === "compartido" ? copy.sharedTour[lang] : copy.privateTour[lang]}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <Label htmlFor="pickupTime">
+              {copy.pickupTimeLabel[lang]}{" "}
+              <span className="text-muted">({copy.optional[lang]})</span>
+            </Label>
+            <Input
+              id="pickupTime"
+              type="time"
+              className="mt-1.5"
+              value={guest.pickupTime}
+              onChange={(e) => patchGuest({ pickupTime: e.target.value })}
+            />
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <Label htmlFor="dietary">
+                {copy.dietaryLabel[lang]}{" "}
+                <span className="text-muted">({copy.optional[lang]})</span>
+              </Label>
+              <Input
+                id="dietary"
+                className="mt-1.5"
+                placeholder={copy.dietaryPlaceholder[lang]}
+                value={guest.dietary}
+                onChange={(e) => patchGuest({ dietary: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="mobility">
+                {copy.mobilityLabel[lang]}{" "}
+                <span className="text-muted">({copy.optional[lang]})</span>
+              </Label>
+              <Input
+                id="mobility"
+                className="mt-1.5"
+                placeholder={copy.mobilityPlaceholder[lang]}
+                value={guest.mobility}
+                onChange={(e) => patchGuest({ mobility: e.target.value })}
+              />
+            </div>
+          </div>
+          <div>
+            <Label htmlFor="notes">
+              {copy.notesLabel[lang]} <span className="text-muted">({copy.optional[lang]})</span>
+            </Label>
             <Input
               id="notes"
               className="mt-1.5"
@@ -216,7 +319,7 @@ export function CheckoutPage() {
         {error ? <p className="text-sm text-warn">{error}</p> : null}
 
         <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={submitting}>
-          {submitting ? copy.confirming[lang] : `${copy.confirmButton[lang]} ${formatUsd(total)}`}
+          {submitting ? copy.sendingBooking[lang] : `${copy.confirmButton[lang]} ${formatUsd(total, lang)}`}
         </Button>
       </form>
 
@@ -237,7 +340,7 @@ export function CheckoutPage() {
         </dl>
         <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
           <span className="text-sm text-muted">{copy.total[lang]}</span>
-          <span className="font-display text-2xl tabular-nums">{formatUsd(total)}</span>
+          <span className="font-display text-2xl tabular-nums">{formatUsd(total, lang)}</span>
         </div>
         <Link
           to="/tours/$slug"

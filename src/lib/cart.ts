@@ -9,12 +9,18 @@ export type BookingDraft = {
   pickup: string;
 };
 
+export type TourType = "compartido" | "privado";
+
 export type Guest = {
   name: string;
   email: string;
   phone: string;
   notes: string;
   payAtPickup: boolean;
+  dietary: string;
+  mobility: string;
+  pickupTime: string;
+  tourType: TourType;
 };
 
 export type ConfirmedBooking = BookingDraft &
@@ -43,6 +49,10 @@ const emptyGuest: Guest = {
   phone: "",
   notes: "",
   payAtPickup: true,
+  dietary: "",
+  mobility: "",
+  pickupTime: "",
+  tourType: "compartido",
 };
 
 function bookingId() {
@@ -78,7 +88,7 @@ export const useCart = create<CartState>((set, get) => ({
     } catch {
       /* ignore quota */
     }
-    set({ lastBooking: booking, draft: null });
+    set({ lastBooking: booking, draft: null, guest: emptyGuest });
     return booking;
   },
   loadLast: () => {
