@@ -1,18 +1,6 @@
 import { useRef, useState } from "react";
 import { Upload } from "lucide-react";
-import { uploadImageFn } from "@/lib/upload-fn";
-
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      resolve(result.split(",")[1] ?? "");
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
+import { upload } from "@vercel/blob/client";
 
 export function ImageUpload({
   value,
@@ -27,24 +15,18 @@ export function ImageUpload({
 
   async function handleFile(file: File) {
     setError("");
-    if (file.size > 8 * 1024 * 1024) {
-      setError("La foto pesa más de 8 MB — usa una más chica.");
+    if (file.size > 5 * 1024 * 1024) {
+      setError("La foto pesa más de 5 MB — usa una más chica.");
       return;
     }
     setUploading(true);
     try {
-      const base64 = await fileToBase64(file);
-      const result = await uploadImageFn({
-        data: { filename: file.name, contentType: file.type, base64 },
+      // Uploads straight from the browser to Vercel Blob — never through our
+      // own server — so there's no ~4.5 MB serverless body-size limit here.
+      const result = await upload(`tours/${Date.now()}-${file.name}`, file, {
+        access: "public",
+        handleUploadUrl: "/api/blob-upload",
       });
-      if (!result.ok) {
-        setError(
-          result.reason === "missing_token"
-            ? "Falta configurar el almacenamiento de fotos (BLOB_READ_WRITE_TOKEN)."
-            : "No se pudo subir la foto. Intenta de nuevo.",
-        );
-        return;
-      }
       onChange(result.url);
     } catch {
       setError("No se pudo subir la foto. Intenta de nuevo.");
