@@ -19,6 +19,7 @@ import {
   privateTourPrice,
   relatedTours,
   tourPrice,
+  useTours,
 } from "@/lib/tours";
 import { formatUsd, todayIso } from "@/lib/utils";
 import { useLang } from "@/i18n/context";
@@ -31,7 +32,8 @@ export const Route = createFileRoute("/tours/$slug")({
 function TourDetail() {
   const { lang } = useLang();
   const { slug } = Route.useParams();
-  const tour = getTour(slug);
+  const tours = useTours();
+  const tour = getTour(tours, slug);
   const navigate = useNavigate();
   const setDraft = useCart((s) => s.setDraft);
   const guest = useCart((s) => s.guest);
@@ -61,7 +63,7 @@ function TourDetail() {
   const total = isPrivate
     ? privateTourPrice(tour, adults, children)
     : tourPrice(tour, adults, children);
-  const related = relatedTours(tour.slug);
+  const related = relatedTours(tours, tour.slug);
   const sharedMinDate = tour.lastMinute?.departs === "hoy" ? todayIso(0) : todayIso(0);
   const minDate = isPrivate ? minPrivateDate(tour) : sharedMinDate;
   const underMinGuarantee =

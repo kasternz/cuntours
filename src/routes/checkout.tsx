@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCart, type PaymentMethod } from "@/lib/cart";
-import { getTour, privateTourPrice, tourPrice } from "@/lib/tours";
+import { getTour, privateTourPrice, tourPrice, useTours } from "@/lib/tours";
 import { formatDateLong, formatUsd } from "@/lib/utils";
 import { useLang } from "@/i18n/context";
 import { copy } from "@/i18n/copy";
@@ -30,7 +30,8 @@ export function CheckoutPage() {
     "deposit_card",
   );
 
-  const tour = draft ? getTour(draft.tourSlug) : undefined;
+  const tours = useTours();
+  const tour = draft ? getTour(tours, draft.tourSlug) : undefined;
   const isPrivate = guest.tourType === "privado";
   const total = useMemo(() => {
     if (!tour || !draft) return 0;
@@ -122,7 +123,7 @@ export function CheckoutPage() {
     }
 
     patchGuest({ paymentMethod });
-    const booking = confirm(bookingId, result.sent);
+    const booking = confirm(total, bookingId, result.sent);
     if (!booking) {
       setSubmitting(false);
       setError(copy.errGeneric[lang]);

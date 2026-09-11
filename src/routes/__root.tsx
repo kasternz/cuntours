@@ -5,11 +5,13 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { LastMinuteStrip } from "@/components/last-minute-strip";
 import { I18nProvider } from "@/i18n/context";
+import { getToursFn } from "@/lib/tours-fn";
 import appCss from "../styles.css?url";
 
 const APP_NAME = "Cuntours";
 
 export const Route = createRootRoute({
+  loader: async () => ({ tours: await getToursFn() }),
   head: () => ({
     meta: [
       { charSet: "utf-8" },

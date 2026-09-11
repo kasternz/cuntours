@@ -5,7 +5,7 @@ import { TourCard } from "@/components/tour-card";
 import { CircleRating } from "@/components/traveler-rating";
 import { Countdown } from "@/components/countdown";
 import { FaqList } from "@/components/faq-list";
-import { lastMinuteTours, tours, categoryLabel } from "@/lib/tours";
+import { lastMinuteTours, categoryLabel, useTours } from "@/lib/tours";
 import { tripAdvisor } from "@/lib/tripadvisor";
 import { formatUsd } from "@/lib/utils";
 import { useLang } from "@/i18n/context";
@@ -15,7 +15,8 @@ export const Route = createFileRoute("/")({ component: Home });
 
 function Home() {
   const { lang } = useLang();
-  const flash = lastMinuteTours();
+  const tours = useTours();
+  const flash = lastMinuteTours(tours);
   const featured = tours.filter((t) => !t.lastMinute).slice(0, 6);
 
   return (

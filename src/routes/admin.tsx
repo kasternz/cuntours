@@ -1,111 +1,72 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { RedirectToSignIn, UserButton } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
-import { listBookingsFn } from "@/lib/booking-fn";
-import type { BookingRow } from "@/lib/bookings.server";
-import { formatUsd } from "@/lib/utils";
+import { checkAdminAccessFn } from "@/lib/auth/admin-access-fn";
 
-export const Route = createFileRoute("/admin")({ component: AdminPage });
+export const Route = createFileRoute("/admin")({ component: AdminLayout });
 
-function AdminPage() {
+function AdminLayout() {
   const { user, isPending } = useCurrentUserState();
   if (isPending) return null;
   if (!user) return <RedirectToSignIn />;
-  return <AdminPanel />;
+  return <AdminGate />;
 }
 
-function AdminPanel() {
-  const [bookings, setBookings] = useState<BookingRow[] | null>(null);
+function AdminGate() {
   const [authorized, setAuthorized] = useState<boolean | null>(null);
   const [error, setError] = useState("");
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => {
-    listBookingsFn()
-      .then((res) => {
-        setAuthorized(res.authorized);
-        if (res.authorized) setBookings(res.bookings);
-      })
-      .catch(() => setError("No se pudieron cargar las reservas."));
+    checkAdminAccessFn()
+      .then((res) => setAuthorized(res.authorized))
+      .catch(() => setError("No se pudo verificar el acceso."));
   }, []);
 
-  if (authorized === false) {
+  if (error) {
+    return <p className="mx-auto max-w-lg px-4 py-20 text-center text-sm text-warn">{error}</p>;
+  }
+  if (authorized === null) {
+    return <p className="mx-auto max-w-lg px-4 py-20 text-center text-sm text-muted">Cargando…</p>;
+  }
+  if (!authorized) {
     return (
       <main className="mx-auto max-w-lg px-4 py-20 text-center">
         <h1 className="font-display text-2xl tracking-tight">Acceso restringido</h1>
         <p className="mt-3 text-muted">
-          Esta cuenta no tiene permiso para ver las reservas. Contacta al administrador.
+          Esta cuenta no tiene permiso para administrar Cuntours. Contacta al administrador.
         </p>
       </main>
     );
   }
 
+  const tab = (to: string, label: string) => {
+    const active = to === "/admin" ? pathname === "/admin" : pathname.startsWith(to);
+    return (
+      <Link
+        to={to}
+        className={`h-10 rounded-[var(--radius-sm)] px-3 text-sm font-medium leading-10 ${
+          active ? "bg-teal text-foam" : "text-ink-soft"
+        }`}
+      >
+        {label}
+      </Link>
+    );
+  };
+
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="font-display text-3xl tracking-tight">Reservas</h1>
+        <div className="flex items-center gap-1">
+          {tab("/admin", "Reservas")}
+          {tab("/admin/tours", "Tours")}
+        </div>
         <UserButton />
       </div>
-
-      {error ? <p className="mt-6 text-sm text-warn">{error}</p> : null}
-      {authorized === null && !error ? <p className="mt-6 text-sm text-muted">Cargando…</p> : null}
-      {bookings && bookings.length === 0 ? (
-        <p className="mt-6 text-sm text-muted">Todavía no hay reservas.</p>
-      ) : null}
-
-      {bookings && bookings.length > 0 ? (
-        <div className="mt-6 overflow-x-auto rounded-[var(--radius-lg)] shadow-[var(--shadow-border)]">
-          <table className="w-full min-w-[900px] text-left text-sm">
-            <thead className="bg-bg-elevated text-xs uppercase tracking-wide text-muted">
-              <tr>
-                {["Folio", "Tour", "Fecha", "Personas", "Tipo", "Recogida", "Cliente", "Teléfono", "Pago", "Total", "Correo", "Creada"].map(
-                  (h) => (
-                    <th key={h} className="whitespace-nowrap px-4 py-3 font-medium">
-                      {h}
-                    </th>
-                  ),
-                )}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {bookings.map((b) => (
-                <tr key={b.bookingId} className="bg-bg">
-                  <td className="whitespace-nowrap px-4 py-3 font-medium">{b.bookingId}</td>
-                  <td className="whitespace-nowrap px-4 py-3">{b.tourName}</td>
-                  <td className="whitespace-nowrap px-4 py-3">{b.date}</td>
-                  <td className="whitespace-nowrap px-4 py-3">
-                    {b.adults}A{b.children ? ` · ${b.children}N` : ""}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3">
-                    {b.tourType === "privado" ? "Privado" : "Compartido"}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3">{b.pickup}</td>
-                  <td className="whitespace-nowrap px-4 py-3">{b.guestName}</td>
-                  <td className="whitespace-nowrap px-4 py-3">{b.guestPhone}</td>
-                  <td className="whitespace-nowrap px-4 py-3">
-                    {b.paymentMethod === "full_card"
-                      ? "Completo"
-                      : b.paymentMethod === "deposit_card"
-                        ? "Depósito (tarjeta)"
-                        : "Depósito (transferencia)"}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3">{formatUsd(b.total)}</td>
-                  <td className="whitespace-nowrap px-4 py-3">
-                    {b.emailSent ? (
-                      <span className="text-teal">Enviado</span>
-                    ) : (
-                      <span className="text-warn">Falló</span>
-                    )}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-muted">
-                    {new Date(b.createdAt).toLocaleString("es-MX")}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : null}
+      <div className="mt-6">
+        <Outlet />
+      </div>
     </main>
   );
 }

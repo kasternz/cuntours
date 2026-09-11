@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { tourPrice, getTour } from "./tours";
 
 export type BookingDraft = {
   tourSlug: string;
@@ -41,7 +40,7 @@ type CartState = {
   setDraft: (draft: BookingDraft) => void;
   patchDraft: (patch: Partial<BookingDraft>) => void;
   patchGuest: (patch: Partial<Guest>) => void;
-  confirm: (id?: string, emailSent?: boolean) => ConfirmedBooking | null;
+  confirm: (total: number, id?: string, emailSent?: boolean) => ConfirmedBooking | null;
   loadLast: () => void;
 };
 
@@ -73,16 +72,14 @@ export const useCart = create<CartState>((set, get) => ({
     set({ draft: { ...current, ...patch } });
   },
   patchGuest: (patch) => set({ guest: { ...get().guest, ...patch } }),
-  confirm: (id, emailSent) => {
+  confirm: (total, id, emailSent) => {
     const { draft, guest } = get();
     if (!draft) return null;
-    const tour = getTour(draft.tourSlug);
-    if (!tour) return null;
     const booking: ConfirmedBooking = {
       ...draft,
       ...guest,
       id: id ?? bookingId(),
-      total: tourPrice(tour, draft.adults, draft.children),
+      total,
       createdAt: new Date().toISOString(),
       emailSent: emailSent ?? true,
     };

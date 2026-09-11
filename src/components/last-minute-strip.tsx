@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { lastMinuteTours } from "@/lib/tours";
+import { lastMinuteTours, useTours } from "@/lib/tours";
 import { Countdown } from "./countdown";
 import { useLang } from "@/i18n/context";
 import { copy } from "@/i18n/copy";
@@ -7,7 +7,8 @@ import { copy } from "@/i18n/copy";
 export function LastMinuteStrip() {
   const { lang } = useLang();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const flash = lastMinuteTours();
+  const tours = useTours();
+  const flash = lastMinuteTours(tours);
   if (!flash.length) return null;
   if (pathname.startsWith("/checkout") || pathname.startsWith("/confirmacion")) return null;
 

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { TourCard } from "@/components/tour-card";
-import { tours, type Category } from "@/lib/tours";
+import { useTours, type Category } from "@/lib/tours";
 import { cn } from "@/lib/utils";
 import { useLang } from "@/i18n/context";
 import { copy } from "@/i18n/copy";
@@ -26,6 +26,7 @@ function ToursPage() {
   const { lang } = useLang();
   const { cat } = Route.useSearch();
   const active: Filter = cat ?? "todos";
+  const tours = useTours();
   const list = tours.filter((t) => {
     if (active === "todos") return true;
     if (active === "ultimo") return Boolean(t.lastMinute);

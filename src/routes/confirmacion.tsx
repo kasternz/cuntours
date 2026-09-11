@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Calendar, Check, MapPin, Users } from "lucide-react";
 import { useCart } from "@/lib/cart";
-import { getTour } from "@/lib/tours";
+import { getTour, useTours } from "@/lib/tours";
 import { formatDateLong, formatUsd } from "@/lib/utils";
 import { bookingWhatsAppUrl } from "@/lib/whatsapp";
 import { MessageCircle } from "lucide-react";
@@ -15,6 +15,8 @@ function Confirmacion() {
   const { lang } = useLang();
   const loadLast = useCart((s) => s.loadLast);
   const booking = useCart((s) => s.lastBooking);
+
+  const tours = useTours();
 
   useEffect(() => {
     loadLast();
@@ -35,7 +37,7 @@ function Confirmacion() {
     );
   }
 
-  const tour = getTour(booking.tourSlug);
+  const tour = getTour(tours, booking.tourSlug);
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
