@@ -9,6 +9,11 @@ export type LastMinute = {
   departs: "hoy" | "manana";
 };
 
+export type TourStop = {
+  name: Localized;
+  description: Localized;
+};
+
 export type Tour = {
   slug: string;
   name: Localized;
@@ -18,6 +23,10 @@ export type Tour = {
   duration: Localized;
   location: Localized;
   meeting: Localized;
+  // Plain-text place search used for the embedded Google Map (no need for
+  // precise lat/lng — Maps Embed API geocodes simple queries like this).
+  meetingQuery: string;
+  stops: TourStop[];
   includes: Localized[];
   notIncluded: Localized[];
   highlights: Localized[];
@@ -50,6 +59,30 @@ export const tours: Tour[] = [
       es: "Recogida en hotel zona hotelera y downtown",
       en: "Hotel pickup in the hotel zone and downtown",
     },
+    meetingQuery: "Marina El Embarcadero, Cancún, México",
+    stops: [
+      {
+        name: { es: "Salida — Marina El Embarcadero", en: "Departure — Marina El Embarcadero" },
+        description: {
+          es: "Abordaje y briefing de seguridad antes de zarpar.",
+          en: "Boarding and safety briefing before setting sail.",
+        },
+      },
+      {
+        name: { es: "Snorkel — arrecife El Meco", en: "Snorkel — El Meco reef" },
+        description: {
+          es: "Primera parada de snorkel sobre coral y peces tropicales.",
+          en: "First snorkel stop over coral and tropical fish.",
+        },
+      },
+      {
+        name: { es: "Playa Norte, Isla Mujeres", en: "Playa Norte, Isla Mujeres" },
+        description: {
+          es: "Tiempo libre en la playa, open bar y buffet a bordo.",
+          en: "Free time on the beach, open bar and buffet on board.",
+        },
+      },
+    ],
     includes: [
       { es: "Traslado ida y vuelta desde el hotel", en: "Round-trip hotel transfer" },
       { es: "Snorkel con equipo", en: "Snorkeling with gear" },
@@ -94,6 +127,27 @@ export const tours: Tour[] = [
       es: "Muelle Punta Nizuc, traslado opcional",
       en: "Punta Nizuc pier, optional transfer",
     },
+    meetingQuery: "Punta Nizuc, Cancún, México",
+    stops: [
+      {
+        name: { es: "Salida — Muelle Punta Nizuc", en: "Departure — Punta Nizuc pier" },
+        description: { es: "Equipo de snorkel y briefing.", en: "Snorkel gear and briefing." },
+      },
+      {
+        name: { es: "Primer sitio de arrecife", en: "First reef site" },
+        description: {
+          es: "Coral de cerebro y abanicos, poca profundidad.",
+          en: "Brain coral and sea fans, shallow depth.",
+        },
+      },
+      {
+        name: { es: "Segundo sitio de arrecife", en: "Second reef site" },
+        description: {
+          es: "Zona con más vida marina, peces ángel y loro.",
+          en: "Area with more marine life, angelfish and parrotfish.",
+        },
+      },
+    ],
     includes: [
       { es: "Lancha exclusiva de grupo pequeño", en: "Exclusive small-group boat" },
       { es: "Equipo de snorkel y chaleco", en: "Snorkel gear and life vest" },
@@ -133,6 +187,30 @@ export const tours: Tour[] = [
     duration: { es: "8 horas", en: "8 hours" },
     location: { es: "Isla Mujeres · mar abierto", en: "Isla Mujeres · open sea" },
     meeting: { es: "Recogida en hotel 6:30–7:00", en: "Hotel pickup 6:30–7:00 AM" },
+    meetingQuery: "Puerto Juárez, Cancún, México",
+    stops: [
+      {
+        name: { es: "Salida — Puerto Juárez", en: "Departure — Puerto Juárez" },
+        description: {
+          es: "Abordaje y navegación hacia la zona de avistamiento.",
+          en: "Boarding and sail out toward the sighting zone.",
+        },
+      },
+      {
+        name: { es: "Nado con tiburón ballena", en: "Whale shark swim" },
+        description: {
+          es: "Grupos pequeños en el agua, turnos regulados por permiso.",
+          en: "Small groups in the water, permit-regulated turns.",
+        },
+      },
+      {
+        name: { es: "Isla Contoy / Isla Mujeres", en: "Isla Contoy / Isla Mujeres" },
+        description: {
+          es: "Parada de descanso y almuerzo antes de regresar.",
+          en: "Rest and lunch stop before heading back.",
+        },
+      },
+    ],
     includes: [
       { es: "Traslado hotel", en: "Hotel transfer" },
       { es: "Desayuno ligero y almuerzo", en: "Light breakfast and lunch" },
@@ -175,6 +253,24 @@ export const tours: Tour[] = [
       es: "Recogida en hotel Cancún o Playa del Carmen",
       en: "Hotel pickup in Cancún or Playa del Carmen",
     },
+    meetingQuery: "Ruta de los Cenotes, Puerto Morelos, México",
+    stops: [
+      {
+        name: { es: "Cenote abierto", en: "Open-air cenote" },
+        description: { es: "Primer nado, agua fresca y luz natural.", en: "First swim, fresh water and natural light." },
+      },
+      {
+        name: { es: "Cenote semi-abierto", en: "Semi-open cenote" },
+        description: { es: "Formaciones rocosas parcialmente cubiertas.", en: "Rock formations partially covered." },
+      },
+      {
+        name: { es: "Caverna con estalactitas", en: "Stalactite cave" },
+        description: {
+          es: "El más dramático de los tres, con casco y guía espeleólogo.",
+          en: "The most dramatic of the three, with helmet and caving guide.",
+        },
+      },
+    ],
     includes: [
       { es: "Traslado", en: "Transfer" },
       { es: "Entrada a tres cenotes", en: "Entry to three cenotes" },
@@ -216,6 +312,24 @@ export const tours: Tour[] = [
       es: "Ferry Playa del Carmen, traslado desde Cancún",
       en: "Playa del Carmen ferry, transfer from Cancún",
     },
+    meetingQuery: "Muelle Fiscal, Playa del Carmen, México",
+    stops: [
+      {
+        name: { es: "Salida — Muelle Fiscal", en: "Departure — Muelle Fiscal" },
+        description: { es: "Ferry a Cozumel, ~45 minutos.", en: "Ferry to Cozumel, ~45 minutes." },
+      },
+      {
+        name: { es: "Palancar Gardens", en: "Palancar Gardens" },
+        description: {
+          es: "Dos inmersiones de snorkel o bautizo de buceo.",
+          en: "Two snorkel dives or a discovery scuba dive.",
+        },
+      },
+      {
+        name: { es: "Almuerzo en Cozumel", en: "Lunch in Cozumel" },
+        description: { es: "Tiempo libre en el muelle antes del regreso.", en: "Free time at the pier before heading back." },
+      },
+    ],
     includes: [
       { es: "Traslado Cancún–Playa", en: "Cancún–Playa transfer" },
       { es: "Ferry ida y vuelta", en: "Round-trip ferry" },
@@ -254,6 +368,28 @@ export const tours: Tour[] = [
     duration: { es: "12 horas", en: "12 hours" },
     location: { es: "Chichén Itzá · Yucatán", en: "Chichén Itzá · Yucatán" },
     meeting: { es: "Recogida 5:30–6:00 en hotel", en: "Hotel pickup 5:30–6:00 AM" },
+    meetingQuery: "Zona Arqueológica de Chichén Itzá, Yucatán, México",
+    stops: [
+      {
+        name: { es: "El Castillo", en: "El Castillo" },
+        description: {
+          es: "La pirámide principal, con el primer grupo del día.",
+          en: "The main pyramid, with the first group of the day.",
+        },
+      },
+      {
+        name: { es: "Juego de Pelota", en: "The Ball Court" },
+        description: { es: "El campo de juego de pelota más grande de Mesoamérica.", en: "The largest ball court in Mesoamerica." },
+      },
+      {
+        name: { es: "El Observatorio y Cenote Sagrado", en: "The Observatory and Sacred Cenote" },
+        description: { es: "Recorrido con arqueólogo por el resto del sitio.", en: "Tour of the rest of the site with an archaeologist." },
+      },
+      {
+        name: { es: "Cenote de regreso", en: "Cenote on the way back" },
+        description: { es: "Parada para nadar antes de volver al hotel.", en: "A swim stop before heading back to the hotel." },
+      },
+    ],
     includes: [
       { es: "Traslado en van climatizada", en: "Air-conditioned van transfer" },
       { es: "Entrada a la zona arqueológica", en: "Archaeological site entry" },
@@ -298,6 +434,21 @@ export const tours: Tour[] = [
       es: "Recogida en hotel Cancún / Riviera Maya",
       en: "Hotel pickup in Cancún / Riviera Maya",
     },
+    meetingQuery: "Zona Arqueológica de Tulum, Quintana Roo, México",
+    stops: [
+      {
+        name: { es: "El Castillo de Tulum", en: "El Castillo de Tulum" },
+        description: { es: "El templo principal sobre el acantilado.", en: "The main temple on the cliff." },
+      },
+      {
+        name: { es: "Templo de los Frescos", en: "Temple of the Frescoes" },
+        description: { es: "Murallas con pinturas mayas originales.", en: "Walls with original Maya paintings." },
+      },
+      {
+        name: { es: "Playa bajo las ruinas", en: "Beach beneath the ruins" },
+        description: { es: "Tiempo libre en la playa de arena blanca.", en: "Free time on the white-sand beach." },
+      },
+    ],
     includes: [
       { es: "Traslado", en: "Transfer" },
       { es: "Entrada a ruinas", en: "Ruins entry" },
@@ -337,6 +488,21 @@ export const tours: Tour[] = [
     duration: { es: "10 horas", en: "10 hours" },
     location: { es: "Cobá · Quintana Roo", en: "Cobá · Quintana Roo" },
     meeting: { es: "Recogida en hotel", en: "Hotel pickup" },
+    meetingQuery: "Zona Arqueológica de Cobá, Quintana Roo, México",
+    stops: [
+      {
+        name: { es: "Entrada y renta de bici", en: "Entrance and bike rental" },
+        description: { es: "Recorrido por los sacbés (calzadas blancas).", en: "Ride along the sacbés (white causeways)." },
+      },
+      {
+        name: { es: "Nohoch Mul", en: "Nohoch Mul" },
+        description: { es: "La pirámide más alta de Quintana Roo, subida opcional.", en: "The tallest pyramid in Quintana Roo, optional climb." },
+      },
+      {
+        name: { es: "Cenote y pueblo maya", en: "Cenote and Maya village" },
+        description: { es: "Almuerzo regional y nado en cenote de caverna.", en: "Regional lunch and a swim in a cave cenote." },
+      },
+    ],
     includes: [
       { es: "Traslado", en: "Transfer" },
       { es: "Bicicleta en el sitio", en: "Bike at the site" },
@@ -375,6 +541,21 @@ export const tours: Tour[] = [
     duration: { es: "11 horas", en: "11 hours" },
     location: { es: "Ek Balam · Yucatán", en: "Ek Balam · Yucatán" },
     meeting: { es: "Recogida 6:00 en hotel Cancún", en: "Hotel pickup 6:00 AM in Cancún" },
+    meetingQuery: "Zona Arqueológica de Ek Balam, Yucatán, México",
+    stops: [
+      {
+        name: { es: "Friso del jaguar y Acrópolis", en: "Jaguar frieze and Acropolis" },
+        description: { es: "El estuco maya mejor conservado de la región, con epigrafista.", en: "The best-preserved Maya stucco in the region, with an epigrapher." },
+      },
+      {
+        name: { es: "Cenote cercano", en: "Nearby cenote" },
+        description: { es: "Agua turquesa, poca afluencia de gente.", en: "Turquoise water, low crowds." },
+      },
+      {
+        name: { es: "Almuerzo", en: "Lunch" },
+        description: { es: "Comida regional antes de volver al hotel.", en: "Regional food before heading back to the hotel." },
+      },
+    ],
     includes: [
       { es: "Traslado", en: "Transfer" },
       { es: "Entrada a Ek Balam", en: "Ek Balam entry" },

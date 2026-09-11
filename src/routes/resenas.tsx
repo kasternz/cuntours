@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Star } from "lucide-react";
 import { CircleRating } from "@/components/traveler-rating";
+import { TripAdvisorWriteReviewWidget } from "@/components/tripadvisor-write-review";
 import { tripAdvisor } from "@/lib/tripadvisor";
 import { useLang } from "@/i18n/context";
 import { copy } from "@/i18n/copy";
@@ -46,6 +47,15 @@ function ResenasPage() {
           {copy.lastMinuteDeals[lang]}
         </Link>
       </p>
+
+      <div className="mt-12 border-t border-border pt-8 text-center">
+        <p className="text-sm text-muted">
+          {lang === "es" ? "¿Ya viajaste con nosotros?" : "Already traveled with us?"}
+        </p>
+        <div className="mt-4">
+          <TripAdvisorWriteReviewWidget />
+        </div>
+      </div>
     </main>
   );
 }

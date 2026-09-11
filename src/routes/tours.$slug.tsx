@@ -2,6 +2,9 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Check, Clock, Languages, MapPin, Users } from "lucide-react";
 import { useState } from "react";
 import { Countdown } from "@/components/countdown";
+import { PickupSelect } from "@/components/pickup-select";
+import { PlaceMap } from "@/components/place-map";
+import { TourItinerary } from "@/components/tour-itinerary";
 import { Qty } from "@/components/qty";
 import { CircleRating } from "@/components/traveler-rating";
 import { TourCard } from "@/components/tour-card";
@@ -145,8 +148,18 @@ function TourDetail() {
             ))}
           </ul>
 
+          <h2 className="mt-8 font-display text-2xl tracking-tight">
+            {lang === "es" ? "Itinerario" : "Itinerary"}
+          </h2>
+          <div className="mt-4">
+            <TourItinerary stops={tour.stops} />
+          </div>
+
           <h2 className="mt-8 font-display text-2xl tracking-tight">{copy.meetingPoint[lang]}</h2>
           <p className="mt-2 text-sm text-ink-soft">{tour.meeting[lang]}</p>
+          <div className="mt-3">
+            <PlaceMap query={tour.meetingQuery} />
+          </div>
         </article>
 
         <aside className="lg:sticky lg:top-24 lg:self-start">
@@ -177,13 +190,14 @@ function TourDetail() {
               <Qty label={copy.children[lang]} value={children} min={0} onChange={setChildren} />
               <div>
                 <Label htmlFor="pickup">{copy.pickupHotelLabel[lang]}</Label>
-                <Input
-                  id="pickup"
-                  className="mt-1.5"
-                  placeholder={copy.pickupPlaceholder[lang]}
-                  value={pickup}
-                  onChange={(e) => setPickup(e.target.value)}
-                />
+                <div className="mt-1.5">
+                  <PickupSelect value={pickup} onChange={setPickup} />
+                </div>
+                {pickup ? (
+                  <div className="mt-2">
+                    <PlaceMap query={`${pickup}, Cancún, México`} className="h-36 w-full rounded-[var(--radius-md)] border-0" />
+                  </div>
+                ) : null}
               </div>
             </div>
 
