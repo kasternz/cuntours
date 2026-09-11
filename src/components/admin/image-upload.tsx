@@ -28,8 +28,13 @@ export function ImageUpload({
         handleUploadUrl: "/api/blob-upload",
       });
       onChange(result.url);
-    } catch {
-      setError("No se pudo subir la foto. Intenta de nuevo.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      if (/size|large|too big|maximumSize/i.test(message)) {
+        setError("La foto es demasiado pesada (máximo 5 MB). Usa una más chica.");
+      } else {
+        setError("No se pudo subir la foto. Intenta de nuevo.");
+      }
     } finally {
       setUploading(false);
     }

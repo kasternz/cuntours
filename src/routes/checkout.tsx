@@ -391,10 +391,25 @@ export function CheckoutPage() {
         <h2 className="mt-4 font-display text-xl tracking-tight">{tour.name[lang]}</h2>
         <dl className="mt-3 space-y-2 text-sm">
           <Row k={copy.dateLabel[lang]} v={formatDateLong(draft.date, lang)} />
-          <Row
-            k={copy.rowTravelers[lang]}
-            v={`${draft.adults} ${copy.adultsWord[lang]}${draft.children ? `, ${draft.children} ${copy.childrenWord[lang]}` : ""}`}
-          />
+          {!isPrivate ? (
+            <>
+              <Row
+                k={`${draft.adults} ${copy.adultsWord[lang]} × ${formatUsd(tour.price, lang)}`}
+                v={formatUsd(tour.price * draft.adults, lang)}
+              />
+              {draft.children ? (
+                <Row
+                  k={`${draft.children} ${copy.childrenWord[lang]} × ${formatUsd(Math.round(tour.price * 0.6), lang)}`}
+                  v={formatUsd(Math.round(tour.price * 0.6) * draft.children, lang)}
+                />
+              ) : null}
+            </>
+          ) : (
+            <Row
+              k={copy.rowTravelers[lang]}
+              v={`${draft.adults} ${copy.adultsWord[lang]}${draft.children ? `, ${draft.children} ${copy.childrenWord[lang]}` : ""}`}
+            />
+          )}
           <Row k={copy.rowPickup[lang]} v={draft.pickup} />
         </dl>
         <div className="mt-4 border-t border-border pt-4">
