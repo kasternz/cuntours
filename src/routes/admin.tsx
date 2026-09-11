@@ -17,13 +17,28 @@ function AdminPage() {
 
 function AdminPanel() {
   const [bookings, setBookings] = useState<BookingRow[] | null>(null);
+  const [authorized, setAuthorized] = useState<boolean | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
     listBookingsFn()
-      .then(setBookings)
+      .then((res) => {
+        setAuthorized(res.authorized);
+        if (res.authorized) setBookings(res.bookings);
+      })
       .catch(() => setError("No se pudieron cargar las reservas."));
   }, []);
+
+  if (authorized === false) {
+    return (
+      <main className="mx-auto max-w-lg px-4 py-20 text-center">
+        <h1 className="font-display text-2xl tracking-tight">Acceso restringido</h1>
+        <p className="mt-3 text-muted">
+          Esta cuenta no tiene permiso para ver las reservas. Contacta al administrador.
+        </p>
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
@@ -33,7 +48,7 @@ function AdminPanel() {
       </div>
 
       {error ? <p className="mt-6 text-sm text-warn">{error}</p> : null}
-      {!bookings && !error ? <p className="mt-6 text-sm text-muted">Cargando…</p> : null}
+      {authorized === null && !error ? <p className="mt-6 text-sm text-muted">Cargando…</p> : null}
       {bookings && bookings.length === 0 ? (
         <p className="mt-6 text-sm text-muted">Todavía no hay reservas.</p>
       ) : null}

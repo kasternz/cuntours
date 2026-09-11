@@ -25,10 +25,17 @@ export const submitBooking = createServerFn({ method: "POST" })
     return { saved: true as const, sent: emailResult.sent };
   });
 
-/** Admin-only: the bookings list for the panel. */
+/** Admin-only: the bookings list for the panel. Also checks the signed-in
+ * user's email against ADMIN_EMAIL — a valid session alone isn't enough. */
 export const listBookingsFn = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
   .handler(async () => {
+    const { getSessionUser } = await import("./auth/verify.server");
+    const { isAllowedAdminEmail } = await import("./auth/admin-allowlist.server");
+    const user = await getSessionUser();
+    if (!isAllowedAdminEmail(user?.email)) {
+      return { authorized: false as const };
+    }
     const { listBookings } = await import("./bookings.server");
-    return listBookings();
+    return { authorized: true as const, bookings: await listBookings() };
   });
