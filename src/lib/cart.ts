@@ -39,7 +39,7 @@ type CartState = {
   setDraft: (draft: BookingDraft) => void;
   patchDraft: (patch: Partial<BookingDraft>) => void;
   patchGuest: (patch: Partial<Guest>) => void;
-  confirm: () => ConfirmedBooking | null;
+  confirm: (id?: string) => ConfirmedBooking | null;
   loadLast: () => void;
 };
 
@@ -71,7 +71,7 @@ export const useCart = create<CartState>((set, get) => ({
     set({ draft: { ...current, ...patch } });
   },
   patchGuest: (patch) => set({ guest: { ...get().guest, ...patch } }),
-  confirm: () => {
+  confirm: (id) => {
     const { draft, guest } = get();
     if (!draft) return null;
     const tour = getTour(draft.tourSlug);
@@ -79,7 +79,7 @@ export const useCart = create<CartState>((set, get) => ({
     const booking: ConfirmedBooking = {
       ...draft,
       ...guest,
-      id: bookingId(),
+      id: id ?? bookingId(),
       total: tourPrice(tour, draft.adults, draft.children),
       createdAt: new Date().toISOString(),
     };

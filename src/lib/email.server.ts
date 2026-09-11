@@ -17,6 +17,7 @@ export type BookingEmailPayload = {
   guestEmail: string;
   guestPhone: string;
   payAtPickup: boolean;
+  paymentIntentId?: string;
   total: number;
 };
 
@@ -42,7 +43,7 @@ function buildHtml(b: BookingEmailPayload) {
     row("Nombre", b.guestName),
     row("Teléfono", b.guestPhone),
     row("Correo", b.guestEmail),
-    row("Pago", b.payAtPickup ? "Al recoger en el hotel" : "Tarjeta (procesada aparte)"),
+    row("Pago", b.payAtPickup ? "Al recoger en el hotel" : `Tarjeta pagada (Stripe: ${b.paymentIntentId ?? "—"})`),
     row("Total", `$${b.total} USD`),
   ].join("");
 
@@ -69,7 +70,7 @@ function buildText(b: BookingEmailPayload) {
     `Nombre: ${b.guestName}`,
     `Teléfono: ${b.guestPhone}`,
     `Correo: ${b.guestEmail}`,
-    `Pago: ${b.payAtPickup ? "Al recoger en el hotel" : "Tarjeta (procesada aparte)"}`,
+    `Pago: ${b.payAtPickup ? "Al recoger en el hotel" : `Tarjeta pagada (Stripe: ${b.paymentIntentId ?? "—"})`}`,
     `Total: $${b.total} USD`,
   ]
     .filter(Boolean)

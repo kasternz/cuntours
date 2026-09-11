@@ -9,6 +9,7 @@ import { formatDateLong, formatUsd } from "@/lib/utils";
 import { useLang } from "@/i18n/context";
 import { copy } from "@/i18n/copy";
 import { submitBooking } from "@/lib/booking-fn";
+import { StripePaymentSection } from "@/components/stripe-payment-form";
 
 export const Route = createFileRoute("/checkout")({
   component: CheckoutPage,
@@ -21,9 +22,6 @@ export function CheckoutPage() {
   const guest = useCart((s) => s.guest);
   const patchGuest = useCart((s) => s.patchGuest);
   const confirm = useCart((s) => s.confirm);
-  const [card, setCard] = useState("");
-  const [expiry, setExpiry] = useState("");
-  const [cvc, setCvc] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -32,6 +30,15 @@ export function CheckoutPage() {
     if (!tour || !draft) return 0;
     return tourPrice(tour, draft.adults, draft.children);
   }, [tour, draft]);
+
+  // One stable folio for this checkout session — used in the Stripe payment
+  // intent, the sales email, and the final confirmed booking, so all three
+  // always agree on the same reference number.
+  const bookingId = useMemo(
+    () => `CT-${Math.floor(10000 + Math.random() * 90000)}`,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [draft?.tourSlug],
+  );
 
   if (!draft || !tour) {
     return (
@@ -48,39 +55,22 @@ export function CheckoutPage() {
     );
   }
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
+  function validateGuest(): string | null {
     if (!guest.name.trim() || !guest.email.trim() || !guest.phone.trim()) {
-      setError(copy.errRequired[lang]);
-      return;
+      return copy.errRequired[lang];
     }
     if (!guest.email.includes("@")) {
-      setError(copy.errEmail[lang]);
-      return;
+      return copy.errEmail[lang];
     }
-    if (!guest.payAtPickup) {
-      const digits = card.replace(/\s/g, "");
-      if (digits.length < 15) {
-        setError(copy.errCard[lang]);
-        return;
-      }
-      if (!/^\d{2}\/\d{2}$/.test(expiry)) {
-        setError(copy.errExpiry[lang]);
-        return;
-      }
-      if (cvc.length < 3) {
-        setError(copy.errCvc[lang]);
-        return;
-      }
-    }
+    return null;
+  }
 
+  async function finishBooking(paymentIntentId?: string) {
     setSubmitting(true);
-    const id = `CT-${Math.floor(10000 + Math.random() * 90000)}`;
     try {
       const result = await submitBooking({
         data: {
-          bookingId: id,
+          bookingId,
           tourName: tour!.name.es,
           date: formatDateLong(draft!.date, "es"),
           adults: draft!.adults,
@@ -94,8 +84,9 @@ export function CheckoutPage() {
           guestName: guest.name,
           guestEmail: guest.email,
           guestPhone: guest.phone,
-          payAtPickup: guest.payAtPickup,
+          payAtPickup: !paymentIntentId,
           total,
+          paymentIntentId,
         },
       });
       if (!result.sent) {
@@ -109,7 +100,7 @@ export function CheckoutPage() {
       return;
     }
 
-    const booking = confirm();
+    const booking = confirm(bookingId);
     if (!booking) {
       setSubmitting(false);
       setError(copy.errGeneric[lang]);
@@ -118,9 +109,20 @@ export function CheckoutPage() {
     void navigate({ to: "/confirmacion" });
   }
 
+  async function onPayAtPickupSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    const guestError = validateGuest();
+    if (guestError) {
+      setError(guestError);
+      return;
+    }
+    await finishBooking();
+  }
+
   return (
     <main className="mx-auto grid w-full max-w-5xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <form onSubmit={onSubmit} className="space-y-8">
+      <form onSubmit={onPayAtPickupSubmit} className="space-y-8">
         <div>
           <p className="text-sm font-medium uppercase tracking-[0.16em] text-teal">
             {copy.directPurchase[lang]}
@@ -271,56 +273,27 @@ export function CheckoutPage() {
             </label>
           </div>
 
-          {!guest.payAtPickup ? (
-            <div className="space-y-4 rounded-[var(--radius-lg)] bg-bg-elevated p-4 shadow-[var(--shadow-border)]">
-              <div>
-                <Label htmlFor="card">{copy.cardNumber[lang]}</Label>
-                <Input
-                  id="card"
-                  className="mt-1.5"
-                  inputMode="numeric"
-                  autoComplete="cc-number"
-                  placeholder="4242 4242 4242 4242"
-                  value={card}
-                  onChange={(e) => setCard(e.target.value)}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="exp">{copy.expires[lang]}</Label>
-                  <Input
-                    id="exp"
-                    className="mt-1.5"
-                    placeholder="MM/AA"
-                    autoComplete="cc-exp"
-                    value={expiry}
-                    onChange={(e) => setExpiry(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="cvc">{copy.cvc[lang]}</Label>
-                  <Input
-                    id="cvc"
-                    className="mt-1.5"
-                    inputMode="numeric"
-                    autoComplete="cc-csc"
-                    value={cvc}
-                    onChange={(e) => setCvc(e.target.value)}
-                  />
-                </div>
-              </div>
-              <p className="text-xs text-muted">{copy.sampleCardNote[lang]}</p>
-            </div>
-          ) : (
+          {guest.payAtPickup ? (
             <p className="text-sm text-muted">{copy.payAtPickupNote[lang]}</p>
+          ) : (
+            <StripePaymentSection
+              amountUsd={total}
+              bookingId={bookingId}
+              tourName={tour.name.es}
+              guestEmail={guest.email}
+              canSubmit={validateGuest}
+              onPaid={(paymentIntentId) => finishBooking(paymentIntentId)}
+            />
           )}
         </fieldset>
 
         {error ? <p className="text-sm text-warn">{error}</p> : null}
 
-        <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={submitting}>
-          {submitting ? copy.sendingBooking[lang] : `${copy.confirmButton[lang]} ${formatUsd(total, lang)}`}
-        </Button>
+        {guest.payAtPickup ? (
+          <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={submitting}>
+            {submitting ? copy.sendingBooking[lang] : `${copy.confirmButton[lang]} ${formatUsd(total, lang)}`}
+          </Button>
+        ) : null}
       </form>
 
       <aside className="h-fit rounded-[var(--radius-xl)] bg-bg-elevated p-5 shadow-[var(--shadow-border)] lg:sticky lg:top-24">
