@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCart } from "@/lib/cart";
-import { getTour, tourPrice } from "@/lib/tours";
+import { getTour, privateTourPrice, tourPrice } from "@/lib/tours";
 import { formatDateLong, formatUsd } from "@/lib/utils";
 import { useLang } from "@/i18n/context";
 import { copy } from "@/i18n/copy";
@@ -28,8 +28,10 @@ export function CheckoutPage() {
   const tour = draft ? getTour(draft.tourSlug) : undefined;
   const total = useMemo(() => {
     if (!tour || !draft) return 0;
-    return tourPrice(tour, draft.adults, draft.children);
-  }, [tour, draft]);
+    return guest.tourType === "privado"
+      ? privateTourPrice(tour, draft.adults, draft.children)
+      : tourPrice(tour, draft.adults, draft.children);
+  }, [tour, draft, guest.tourType]);
 
   // One stable folio for this checkout session — used in the Stripe payment
   // intent, the sales email, and the final confirmed booking, so all three
@@ -185,22 +187,16 @@ export function CheckoutPage() {
           </legend>
           <div>
             <Label>{copy.tourTypeLabel[lang]}</Label>
-            <div className="mt-1.5 grid grid-cols-2 gap-2">
-              {(["compartido", "privado"] as const).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => patchGuest({ tourType: t })}
-                  className={`h-11 rounded-[var(--radius-md)] text-sm font-medium transition-colors ${
-                    guest.tourType === t
-                      ? "bg-teal text-foam"
-                      : "bg-bg-elevated text-ink-soft shadow-[var(--shadow-border)]"
-                  }`}
-                >
-                  {t === "compartido" ? copy.sharedTour[lang] : copy.privateTour[lang]}
-                </button>
-              ))}
-            </div>
+            <p className="mt-1.5 flex h-11 items-center rounded-[var(--radius-md)] bg-bg-elevated px-4 text-sm shadow-[var(--shadow-border)]">
+              {guest.tourType === "privado" ? copy.privateTour[lang] : copy.sharedTour[lang]}
+            </p>
+            <Link
+              to="/tours/$slug"
+              params={{ slug: tour.slug }}
+              className="mt-1.5 inline-block text-xs text-teal"
+            >
+              {copy.changeTour[lang]}
+            </Link>
           </div>
           <div>
             <Label htmlFor="pickupTime">
@@ -258,30 +254,34 @@ export function CheckoutPage() {
 
         <fieldset className="space-y-4">
           <legend className="font-display text-xl tracking-tight">{copy.payment[lang]}</legend>
-          <div className="grid gap-2">
-            <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-[var(--radius-md)] bg-bg-elevated px-4 shadow-[var(--shadow-border)]">
-              <input
-                type="radio"
-                name="pay"
-                checked={guest.payAtPickup}
-                onChange={() => patchGuest({ payAtPickup: true })}
-                className="accent-teal"
-              />
-              <span className="text-sm">{copy.payAtPickup[lang]}</span>
-            </label>
-            <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-[var(--radius-md)] bg-bg-elevated px-4 shadow-[var(--shadow-border)]">
-              <input
-                type="radio"
-                name="pay"
-                checked={!guest.payAtPickup}
-                onChange={() => patchGuest({ payAtPickup: false })}
-                className="accent-teal"
-              />
-              <span className="text-sm">{copy.payNowCard[lang]}</span>
-            </label>
-          </div>
+          {guest.tourType === "privado" ? (
+            <p className="text-sm text-muted">{copy.privateOnlyCard[lang]}</p>
+          ) : (
+            <div className="grid gap-2">
+              <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-[var(--radius-md)] bg-bg-elevated px-4 shadow-[var(--shadow-border)]">
+                <input
+                  type="radio"
+                  name="pay"
+                  checked={guest.payAtPickup}
+                  onChange={() => patchGuest({ payAtPickup: true })}
+                  className="accent-teal"
+                />
+                <span className="text-sm">{copy.payAtPickup[lang]}</span>
+              </label>
+              <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-[var(--radius-md)] bg-bg-elevated px-4 shadow-[var(--shadow-border)]">
+                <input
+                  type="radio"
+                  name="pay"
+                  checked={!guest.payAtPickup}
+                  onChange={() => patchGuest({ payAtPickup: false })}
+                  className="accent-teal"
+                />
+                <span className="text-sm">{copy.payNowCard[lang]}</span>
+              </label>
+            </div>
+          )}
 
-          {guest.payAtPickup ? (
+          {guest.tourType !== "privado" && guest.payAtPickup ? (
             <p className="text-sm text-muted">{copy.payAtPickupNote[lang]}</p>
           ) : (
             <StripePaymentSection
@@ -297,7 +297,7 @@ export function CheckoutPage() {
 
         {error ? <p className="text-sm text-warn">{error}</p> : null}
 
-        {guest.payAtPickup ? (
+        {guest.tourType !== "privado" && guest.payAtPickup ? (
           <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={submitting}>
             {submitting ? copy.sendingBooking[lang] : `${copy.confirmButton[lang]} ${formatUsd(total, lang)}`}
           </Button>

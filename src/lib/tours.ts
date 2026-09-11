@@ -14,6 +14,21 @@ export type TourStop = {
   description: Localized;
 };
 
+export type PrivateOptions = {
+  /** Per-person price for a private booking — usually higher than shared. */
+  pricePerPerson: number;
+  /** Full unit size (van or boat) this tour normally runs with. */
+  unitCapacity: number;
+  /** Minimum person count charged for, even if fewer people book. */
+  minGuaranteePeople: number;
+  /** Minimum total amount charged, even if the per-person math is lower. */
+  minGuaranteeAmount: number;
+  /** Extra charge (0–1) applied on top when the group doesn't fill the unit. */
+  underfillSurchargePct: number;
+  /** Minimum advance notice required, in days. */
+  minAdvanceDays: number;
+};
+
 export type Tour = {
   slug: string;
   name: Localized;
@@ -27,6 +42,7 @@ export type Tour = {
   // precise lat/lng — Maps Embed API geocodes simple queries like this).
   meetingQuery: string;
   stops: TourStop[];
+  private: PrivateOptions;
   includes: Localized[];
   notIncluded: Localized[];
   highlights: Localized[];
@@ -83,6 +99,14 @@ export const tours: Tour[] = [
         },
       },
     ],
+    private: {
+      pricePerPerson: 120,
+      unitCapacity: 10,
+      minGuaranteePeople: 6,
+      minGuaranteeAmount: 720,
+      underfillSurchargePct: 0.25,
+      minAdvanceDays: 3,
+    },
     includes: [
       { es: "Traslado ida y vuelta desde el hotel", en: "Round-trip hotel transfer" },
       { es: "Snorkel con equipo", en: "Snorkeling with gear" },
@@ -148,6 +172,14 @@ export const tours: Tour[] = [
         },
       },
     ],
+    private: {
+      pricePerPerson: 75,
+      unitCapacity: 8,
+      minGuaranteePeople: 4,
+      minGuaranteeAmount: 300,
+      underfillSurchargePct: 0.25,
+      minAdvanceDays: 2,
+    },
     includes: [
       { es: "Lancha exclusiva de grupo pequeño", en: "Exclusive small-group boat" },
       { es: "Equipo de snorkel y chaleco", en: "Snorkel gear and life vest" },
@@ -211,6 +243,14 @@ export const tours: Tour[] = [
         },
       },
     ],
+    private: {
+      pricePerPerson: 195,
+      unitCapacity: 8,
+      minGuaranteePeople: 6,
+      minGuaranteeAmount: 1170,
+      underfillSurchargePct: 0.25,
+      minAdvanceDays: 5,
+    },
     includes: [
       { es: "Traslado hotel", en: "Hotel transfer" },
       { es: "Desayuno ligero y almuerzo", en: "Light breakfast and lunch" },
@@ -271,6 +311,14 @@ export const tours: Tour[] = [
         },
       },
     ],
+    private: {
+      pricePerPerson: 99,
+      unitCapacity: 10,
+      minGuaranteePeople: 5,
+      minGuaranteeAmount: 495,
+      underfillSurchargePct: 0.25,
+      minAdvanceDays: 3,
+    },
     includes: [
       { es: "Traslado", en: "Transfer" },
       { es: "Entrada a tres cenotes", en: "Entry to three cenotes" },
@@ -330,6 +378,14 @@ export const tours: Tour[] = [
         description: { es: "Tiempo libre en el muelle antes del regreso.", en: "Free time at the pier before heading back." },
       },
     ],
+    private: {
+      pricePerPerson: 159,
+      unitCapacity: 10,
+      minGuaranteePeople: 6,
+      minGuaranteeAmount: 954,
+      underfillSurchargePct: 0.25,
+      minAdvanceDays: 4,
+    },
     includes: [
       { es: "Traslado Cancún–Playa", en: "Cancún–Playa transfer" },
       { es: "Ferry ida y vuelta", en: "Round-trip ferry" },
@@ -390,6 +446,14 @@ export const tours: Tour[] = [
         description: { es: "Parada para nadar antes de volver al hotel.", en: "A swim stop before heading back to the hotel." },
       },
     ],
+    private: {
+      pricePerPerson: 129,
+      unitCapacity: 8,
+      minGuaranteePeople: 8,
+      minGuaranteeAmount: 1032,
+      underfillSurchargePct: 0.25,
+      minAdvanceDays: 5,
+    },
     includes: [
       { es: "Traslado en van climatizada", en: "Air-conditioned van transfer" },
       { es: "Entrada a la zona arqueológica", en: "Archaeological site entry" },
@@ -449,6 +513,14 @@ export const tours: Tour[] = [
         description: { es: "Tiempo libre en la playa de arena blanca.", en: "Free time on the white-sand beach." },
       },
     ],
+    private: {
+      pricePerPerson: 89,
+      unitCapacity: 6,
+      minGuaranteePeople: 6,
+      minGuaranteeAmount: 534,
+      underfillSurchargePct: 0.25,
+      minAdvanceDays: 3,
+    },
     includes: [
       { es: "Traslado", en: "Transfer" },
       { es: "Entrada a ruinas", en: "Ruins entry" },
@@ -503,6 +575,14 @@ export const tours: Tour[] = [
         description: { es: "Almuerzo regional y nado en cenote de caverna.", en: "Regional lunch and a swim in a cave cenote." },
       },
     ],
+    private: {
+      pricePerPerson: 115,
+      unitCapacity: 6,
+      minGuaranteePeople: 6,
+      minGuaranteeAmount: 690,
+      underfillSurchargePct: 0.25,
+      minAdvanceDays: 4,
+    },
     includes: [
       { es: "Traslado", en: "Transfer" },
       { es: "Bicicleta en el sitio", en: "Bike at the site" },
@@ -556,6 +636,14 @@ export const tours: Tour[] = [
         description: { es: "Comida regional antes de volver al hotel.", en: "Regional food before heading back to the hotel." },
       },
     ],
+    private: {
+      pricePerPerson: 110,
+      unitCapacity: 6,
+      minGuaranteePeople: 6,
+      minGuaranteeAmount: 660,
+      underfillSurchargePct: 0.25,
+      minAdvanceDays: 4,
+    },
     includes: [
       { es: "Traslado", en: "Transfer" },
       { es: "Entrada a Ek Balam", en: "Ek Balam entry" },
@@ -611,6 +699,29 @@ export function relatedTours(slug: string, limit = 3) {
 export function tourPrice(tour: Tour, adults: number, children: number) {
   const childRate = 0.6;
   return tour.price * adults + Math.round(tour.price * childRate) * children;
+}
+
+/**
+ * Private-tour total: per-person price for the actual group, but never below
+ * whichever floor applies — the minimum person-count guarantee, the flat
+ * minimum amount, or the underfill surcharge (a % of a full unit's worth).
+ * Children count as full people for private pricing/capacity purposes.
+ */
+export function privateTourPrice(tour: Tour, adults: number, children: number) {
+  const people = adults + children;
+  const p = tour.private;
+  const perPersonTotal = p.pricePerPerson * people;
+  const peopleFloor = p.pricePerPerson * p.minGuaranteePeople;
+  const underfillFloor =
+    people < p.unitCapacity ? p.pricePerPerson * p.unitCapacity * p.underfillSurchargePct : 0;
+  return Math.round(Math.max(perPersonTotal, peopleFloor, p.minGuaranteeAmount, underfillFloor));
+}
+
+/** Earliest date a private booking for this tour can be made for. */
+export function minPrivateDate(tour: Tour): string {
+  const d = new Date();
+  d.setDate(d.getDate() + tour.private.minAdvanceDays);
+  return d.toISOString().slice(0, 10);
 }
 
 export function totalReviewCount() {

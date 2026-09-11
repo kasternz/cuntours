@@ -127,6 +127,19 @@ export const copy = {
   tourTypeLabel: { es: "Tipo de tour", en: "Tour type" },
   sharedTour: { es: "Compartido", en: "Shared" },
   privateTour: { es: "Privado (a confirmar)", en: "Private (to confirm)" },
+  privateOnlyCard: {
+    es: "Los tours privados solo se pagan con tarjeta, no en efectivo.",
+    en: "Private tours are card-only — cash isn't accepted.",
+  },
+  privateAdvanceNotice: {
+    es: "Los tours privados requieren al menos",
+    en: "Private tours require at least",
+  },
+  privateAdvanceDaysWord: { es: "días de anticipación.", en: "days of advance notice." },
+  privateMinNote: {
+    es: "Tarifa mínima de grupo privado aplicada — cubre la unidad completa aunque vayan menos personas.",
+    en: "Minimum private-group rate applied — covers the full vehicle/boat even with fewer people.",
+  },
   dietaryLabel: { es: "Restricción alimenticia", en: "Dietary restriction" },
   dietaryPlaceholder: {
     es: "Ej. vegetariano, alergia a mariscos",

@@ -15,6 +15,8 @@ import { useCart } from "@/lib/cart";
 import {
   categoryLabel,
   getTour,
+  minPrivateDate,
+  privateTourPrice,
   relatedTours,
   tourPrice,
 } from "@/lib/tours";
@@ -32,6 +34,8 @@ function TourDetail() {
   const tour = getTour(slug);
   const navigate = useNavigate();
   const setDraft = useCart((s) => s.setDraft);
+  const guest = useCart((s) => s.guest);
+  const patchGuest = useCart((s) => s.patchGuest);
 
   const [date, setDate] = useState(() =>
     tour?.lastMinute?.departs === "hoy" ? todayIso(0) : todayIso(1),
@@ -39,6 +43,7 @@ function TourDetail() {
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
   const [pickup, setPickup] = useState("");
+  const [error, setError] = useState("");
 
   if (!tour) {
     return (
@@ -52,12 +57,26 @@ function TourDetail() {
     );
   }
 
-  const total = tourPrice(tour, adults, children);
+  const isPrivate = guest.tourType === "privado";
+  const total = isPrivate
+    ? privateTourPrice(tour, adults, children)
+    : tourPrice(tour, adults, children);
   const related = relatedTours(tour.slug);
-  const minDate = tour.lastMinute?.departs === "hoy" ? todayIso(0) : todayIso(0);
+  const sharedMinDate = tour.lastMinute?.departs === "hoy" ? todayIso(0) : todayIso(0);
+  const minDate = isPrivate ? minPrivateDate(tour) : sharedMinDate;
+  const underMinGuarantee =
+    isPrivate && adults + children < tour.private.unitCapacity;
 
   function book() {
+    setError("");
     if (adults + children < 1) return;
+    if (isPrivate && date < minPrivateDate(tour!)) {
+      setError(
+        `${copy.privateAdvanceNotice[lang]} ${tour!.private.minAdvanceDays} ${copy.privateAdvanceDaysWord[lang]}`,
+      );
+      return;
+    }
+    if (isPrivate) patchGuest({ payAtPickup: false });
     setDraft({
       tourSlug: slug,
       date,
@@ -166,15 +185,41 @@ function TourDetail() {
           <div className="rounded-[var(--radius-xl)] bg-bg-elevated p-5 shadow-[var(--shadow-lift)]">
             <div className="flex items-end justify-between gap-3">
               <div>
-                {tour.originalPrice && tour.originalPrice > tour.price ? (
+                {!isPrivate && tour.originalPrice && tour.originalPrice > tour.price ? (
                   <p className="text-sm text-muted line-through">{formatUsd(tour.originalPrice, lang)}</p>
                 ) : null}
-                <p className="font-display text-4xl tracking-tight">{formatUsd(tour.price, lang)}</p>
-                <p className="text-xs text-muted">{copy.perAdultChild[lang]}</p>
+                <p className="font-display text-4xl tracking-tight">
+                  {isPrivate ? formatUsd(total, lang) : formatUsd(tour.price, lang)}
+                </p>
+                <p className="text-xs text-muted">
+                  {isPrivate ? copy.perAdult[lang] : copy.perAdultChild[lang]}
+                </p>
               </div>
             </div>
 
             <div className="mt-5 space-y-4">
+              <div>
+                <Label>{copy.tourTypeLabel[lang]}</Label>
+                <div className="mt-1.5 grid grid-cols-2 gap-2">
+                  {(["compartido", "privado"] as const).map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => patchGuest({ tourType: t })}
+                      className={`h-11 rounded-[var(--radius-md)] text-sm font-medium transition-colors ${
+                        guest.tourType === t
+                          ? "bg-teal text-foam"
+                          : "bg-surface text-ink-soft"
+                      }`}
+                    >
+                      {t === "compartido" ? copy.sharedTour[lang] : copy.privateTour[lang]}
+                    </button>
+                  ))}
+                </div>
+                {isPrivate ? (
+                  <p className="mt-2 text-xs text-muted">{copy.privateOnlyCard[lang]}</p>
+                ) : null}
+              </div>
               <div>
                 <Label htmlFor="date">{copy.dateLabel[lang]}</Label>
                 <Input
@@ -185,6 +230,12 @@ function TourDetail() {
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
                 />
+                {isPrivate ? (
+                  <p className="mt-1.5 text-xs text-muted">
+                    {copy.privateAdvanceNotice[lang]} {tour.private.minAdvanceDays}{" "}
+                    {copy.privateAdvanceDaysWord[lang]}
+                  </p>
+                ) : null}
               </div>
               <Qty label={copy.adults[lang]} value={adults} min={1} onChange={setAdults} />
               <Qty label={copy.children[lang]} value={children} min={0} onChange={setChildren} />
@@ -201,12 +252,20 @@ function TourDetail() {
               </div>
             </div>
 
+            {underMinGuarantee ? (
+              <p className="mt-4 rounded-[var(--radius-md)] bg-warn-soft p-3 text-xs text-ink">
+                {copy.privateMinNote[lang]}
+              </p>
+            ) : null}
+
             <div className="mt-5 flex items-center justify-between border-t border-border pt-4">
               <span className="text-sm text-muted">{copy.total[lang]}</span>
               <span className="font-display text-2xl tabular-nums tracking-tight">
                 {formatUsd(total, lang)}
               </span>
             </div>
+
+            {error ? <p className="mt-2 text-sm text-warn">{error}</p> : null}
 
             <Button className="mt-4 w-full" size="lg" onClick={book} disabled={adults < 1}>
               {copy.bookNow[lang]}
