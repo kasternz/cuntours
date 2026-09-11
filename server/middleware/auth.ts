@@ -21,6 +21,10 @@ export default async function authApiMiddleware(
   event: AuthMiddlewareEvent,
   next: () => unknown | Promise<unknown>,
 ): Promise<unknown> {
+  console.log("[auth-middleware] hit:", event.req.method, event.url.pathname);
   if (!event.url.pathname.startsWith("/api/auth/")) return next();
-  return auth.handler(event.req);
+  console.log("[auth-middleware] delegating to auth.handler");
+  const response = await auth.handler(event.req);
+  console.log("[auth-middleware] auth.handler responded with status:", response.status);
+  return response;
 }
