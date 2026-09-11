@@ -4,6 +4,8 @@ import { Calendar, Check, MapPin, Users } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { getTour } from "@/lib/tours";
 import { formatDateLong, formatUsd } from "@/lib/utils";
+import { bookingWhatsAppUrl } from "@/lib/whatsapp";
+import { MessageCircle } from "lucide-react";
 import { useLang } from "@/i18n/context";
 import { copy } from "@/i18n/copy";
 
@@ -46,6 +48,27 @@ function Confirmacion() {
         <span className="font-medium tabular-nums text-ink">{booking.id}</span>
         {copy.folioSuffix[lang]}
       </p>
+
+      {!booking.emailSent ? (
+        <a
+          href={bookingWhatsAppUrl({
+            bookingId: booking.id,
+            tourName: tour?.name.es ?? booking.tourSlug,
+            date: formatDateLong(booking.date, "es"),
+            total: booking.total,
+          })}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-4 flex items-center gap-3 rounded-[var(--radius-lg)] bg-warn-soft p-4 text-sm text-ink"
+        >
+          <MessageCircle size={20} className="shrink-0 text-warn" />
+          <span>
+            {lang === "es"
+              ? "No pudimos confirmar tu reserva por correo — toca aquí para avisarnos por WhatsApp y confirmarla directo."
+              : "We couldn't confirm your booking by email — tap here to let us know on WhatsApp and confirm it directly."}
+          </span>
+        </a>
+      ) : null}
 
       <article className="mt-8 overflow-hidden rounded-[var(--radius-xl)] bg-bg-elevated shadow-[var(--shadow-lift)]">
         {tour ? (

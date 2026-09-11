@@ -3,6 +3,7 @@ import { bookingNotifications } from "./notifications";
 
 export type BookingEmailPayload = {
   bookingId: string;
+  tourSlug: string;
   tourName: string;
   date: string;
   adults: number;
@@ -78,8 +79,9 @@ function buildText(b: BookingEmailPayload) {
 }
 
 /**
- * Sends the booking notification to the sales inbox. Server-only — call from
- * a createServerFn handler, never from client code.
+ * Sends the booking notification to the sales inbox, retrying briefly on
+ * transient failures (network blips, Resend rate limits) before giving up.
+ * Server-only — call from a createServerFn handler, never from client code.
  */
 export async function sendBookingEmail(payload: BookingEmailPayload) {
   const apiKey = process.env.RESEND_API_KEY;
@@ -89,18 +91,30 @@ export async function sendBookingEmail(payload: BookingEmailPayload) {
   }
 
   const resend = new Resend(apiKey);
-  const result = await resend.emails.send({
-    from: bookingNotifications.from,
-    to: bookingNotifications.to,
-    replyTo: payload.guestEmail || undefined,
-    subject: `Nueva reserva ${payload.bookingId} — ${payload.tourName}`,
-    html: buildHtml(payload),
-    text: buildText(payload),
-  });
+  const attempts = 3;
+  let lastError: unknown;
 
-  if (result.error) {
-    console.error("[email] Resend error:", result.error);
-    return { sent: false, reason: "send_failed" as const };
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      const result = await resend.emails.send({
+        from: bookingNotifications.from,
+        to: bookingNotifications.to,
+        replyTo: payload.guestEmail || undefined,
+        subject: `Nueva reserva ${payload.bookingId} — ${payload.tourName}`,
+        html: buildHtml(payload),
+        text: buildText(payload),
+      });
+      if (!result.error) return { sent: true as const };
+      lastError = result.error;
+    } catch (err) {
+      lastError = err;
+    }
+    console.error(`[email] attempt ${attempt}/${attempts} failed:`, lastError);
+    if (attempt < attempts) {
+      await new Promise((r) => setTimeout(r, attempt * 800));
+    }
   }
-  return { sent: true as const };
+
+  console.error("[email] all attempts failed, giving up:", lastError);
+  return { sent: false, reason: "send_failed" as const };
 }

@@ -28,6 +28,7 @@ export type ConfirmedBooking = BookingDraft &
     id: string;
     total: number;
     createdAt: string;
+    emailSent: boolean;
   };
 
 const STORAGE_KEY = "cuntours-last-booking";
@@ -39,7 +40,7 @@ type CartState = {
   setDraft: (draft: BookingDraft) => void;
   patchDraft: (patch: Partial<BookingDraft>) => void;
   patchGuest: (patch: Partial<Guest>) => void;
-  confirm: (id?: string) => ConfirmedBooking | null;
+  confirm: (id?: string, emailSent?: boolean) => ConfirmedBooking | null;
   loadLast: () => void;
 };
 
@@ -71,7 +72,7 @@ export const useCart = create<CartState>((set, get) => ({
     set({ draft: { ...current, ...patch } });
   },
   patchGuest: (patch) => set({ guest: { ...get().guest, ...patch } }),
-  confirm: (id) => {
+  confirm: (id, emailSent) => {
     const { draft, guest } = get();
     if (!draft) return null;
     const tour = getTour(draft.tourSlug);
@@ -82,6 +83,7 @@ export const useCart = create<CartState>((set, get) => ({
       id: id ?? bookingId(),
       total: tourPrice(tour, draft.adults, draft.children),
       createdAt: new Date().toISOString(),
+      emailSent: emailSent ?? true,
     };
     try {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(booking));

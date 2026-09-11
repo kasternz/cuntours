@@ -10,8 +10,10 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as ConfirmacionRouteImport } from './routes/confirmacion'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as ResenasRouteImport } from './routes/resenas'
 import { Route as ToursRouteImport } from './routes/tours'
 import { Route as ToursIndexRouteImport } from './routes/tours.index'
@@ -22,6 +24,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CheckoutRoute = CheckoutRouteImport.update({
   id: '/checkout',
   path: '/checkout',
@@ -30,6 +37,11 @@ const CheckoutRoute = CheckoutRouteImport.update({
 const ConfirmacionRoute = ConfirmacionRouteImport.update({
   id: '/confirmacion',
   path: '/confirmacion',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResenasRoute = ResenasRouteImport.update({
@@ -55,8 +67,10 @@ const ToursSlugRoute = ToursSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/checkout': typeof CheckoutRoute
   '/confirmacion': typeof ConfirmacionRoute
+  '/login': typeof LoginRoute
   '/resenas': typeof ResenasRoute
   '/tours': typeof ToursRouteWithChildren
   '/tours/$slug': typeof ToursSlugRoute
@@ -64,8 +78,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/checkout': typeof CheckoutRoute
   '/confirmacion': typeof ConfirmacionRoute
+  '/login': typeof LoginRoute
   '/resenas': typeof ResenasRoute
   '/tours/$slug': typeof ToursSlugRoute
   '/tours': typeof ToursIndexRoute
@@ -73,8 +89,10 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/checkout': typeof CheckoutRoute
   '/confirmacion': typeof ConfirmacionRoute
+  '/login': typeof LoginRoute
   '/resenas': typeof ResenasRoute
   '/tours': typeof ToursRouteWithChildren
   '/tours/$slug': typeof ToursSlugRoute
@@ -84,20 +102,31 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/checkout'
     | '/confirmacion'
+    | '/login'
     | '/resenas'
     | '/tours'
     | '/tours/$slug'
     | '/tours/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    '/' | '/checkout' | '/confirmacion' | '/resenas' | '/tours/$slug' | '/tours'
+    | '/'
+    | '/admin'
+    | '/checkout'
+    | '/confirmacion'
+    | '/login'
+    | '/resenas'
+    | '/tours/$slug'
+    | '/tours'
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/checkout'
     | '/confirmacion'
+    | '/login'
     | '/resenas'
     | '/tours'
     | '/tours/$slug'
@@ -106,8 +135,10 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   CheckoutRoute: typeof CheckoutRoute
   ConfirmacionRoute: typeof ConfirmacionRoute
+  LoginRoute: typeof LoginRoute
   ResenasRoute: typeof ResenasRoute
   ToursRoute: typeof ToursRouteWithChildren
 }
@@ -119,6 +150,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/checkout': {
@@ -133,6 +171,13 @@ declare module '@tanstack/react-router' {
       path: '/confirmacion'
       fullPath: '/confirmacion'
       preLoaderRoute: typeof ConfirmacionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/resenas': {
@@ -180,8 +225,10 @@ const ToursRouteWithChildren = ToursRoute._addFileChildren(ToursRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   CheckoutRoute: CheckoutRoute,
   ConfirmacionRoute: ConfirmacionRoute,
+  LoginRoute: LoginRoute,
   ResenasRoute: ResenasRoute,
   ToursRoute: ToursRouteWithChildren,
 }

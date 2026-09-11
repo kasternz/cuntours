@@ -9,4 +9,8 @@ export const bookingNotifications = {
   // Resend's shared test sender so booking emails work immediately.
   // Once verified, change this to e.g. "Cuntours <reservas@cuntours.com>".
   from: "Cuntours Reservas <onboarding@resend.dev>",
+  // Business WhatsApp number, digits only with country code, no "+" or
+  // spaces (wa.me format). Shown as a fallback if the email notification
+  // fails, so a paid booking never silently goes unnoticed.
+  whatsapp: "529843221219",
 };

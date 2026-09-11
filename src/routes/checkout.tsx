@@ -67,10 +67,12 @@ export function CheckoutPage() {
 
   async function finishBooking(paymentIntentId?: string) {
     setSubmitting(true);
+    let result: { saved: boolean; sent: boolean };
     try {
-      const result = await submitBooking({
+      result = await submitBooking({
         data: {
           bookingId,
+          tourSlug: tour!.slug,
           tourName: tour!.name.es,
           date: formatDateLong(draft!.date, "es"),
           adults: draft!.adults,
@@ -89,18 +91,24 @@ export function CheckoutPage() {
           paymentIntentId,
         },
       });
-      if (!result.sent) {
-        setSubmitting(false);
-        setError(copy.errEmailSend[lang]);
-        return;
-      }
     } catch {
       setSubmitting(false);
-      setError(copy.errEmailSend[lang]);
+      setError(copy.errGeneric[lang]);
       return;
     }
 
-    const booking = confirm(bookingId);
+    // Only a real database failure blocks the booking — a payment already
+    // happened (if paying by card), so the booking record must never be lost
+    // just because the notification email had trouble. If the email failed
+    // but the booking saved, we proceed and show a WhatsApp fallback on the
+    // confirmation page instead of stranding the customer here.
+    if (!result.saved) {
+      setSubmitting(false);
+      setError(copy.errGeneric[lang]);
+      return;
+    }
+
+    const booking = confirm(bookingId, result.sent);
     if (!booking) {
       setSubmitting(false);
       setError(copy.errGeneric[lang]);
