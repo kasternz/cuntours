@@ -1,15 +1,17 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useCart } from "@/lib/cart";
+import { useCart, type PaymentMethod } from "@/lib/cart";
 import { getTour, privateTourPrice, tourPrice } from "@/lib/tours";
 import { formatDateLong, formatUsd } from "@/lib/utils";
 import { useLang } from "@/i18n/context";
 import { copy } from "@/i18n/copy";
 import { submitBooking } from "@/lib/booking-fn";
 import { StripePaymentSection } from "@/components/stripe-payment-form";
+import { bankTransfer, bookingNotifications } from "@/lib/notifications";
 
 export const Route = createFileRoute("/checkout")({
   component: CheckoutPage,
@@ -24,14 +26,20 @@ export function CheckoutPage() {
   const confirm = useCart((s) => s.confirm);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [depositSubMethod, setDepositSubMethod] = useState<"deposit_transfer" | "deposit_card">(
+    "deposit_card",
+  );
 
   const tour = draft ? getTour(draft.tourSlug) : undefined;
+  const isPrivate = guest.tourType === "privado";
   const total = useMemo(() => {
     if (!tour || !draft) return 0;
-    return guest.tourType === "privado"
+    return isPrivate
       ? privateTourPrice(tour, draft.adults, draft.children)
       : tourPrice(tour, draft.adults, draft.children);
-  }, [tour, draft, guest.tourType]);
+  }, [tour, draft, isPrivate]);
+  const depositAmount = Math.round(total * 0.2);
+  const balanceDue = total - depositAmount;
 
   // One stable folio for this checkout session — used in the Stripe payment
   // intent, the sales email, and the final confirmed booking, so all three
@@ -67,8 +75,9 @@ export function CheckoutPage() {
     return null;
   }
 
-  async function finishBooking(paymentIntentId?: string) {
+  async function finishBooking(paymentMethod: PaymentMethod, paymentIntentId?: string) {
     setSubmitting(true);
+    const isFull = paymentMethod === "full_card";
     let result: { saved: boolean; sent: boolean };
     try {
       result = await submitBooking({
@@ -88,7 +97,9 @@ export function CheckoutPage() {
           guestName: guest.name,
           guestEmail: guest.email,
           guestPhone: guest.phone,
-          payAtPickup: !paymentIntentId,
+          paymentMethod,
+          depositAmount: isFull ? undefined : depositAmount,
+          balanceDue: isFull ? undefined : balanceDue,
           total,
           paymentIntentId,
         },
@@ -110,6 +121,7 @@ export function CheckoutPage() {
       return;
     }
 
+    patchGuest({ paymentMethod });
     const booking = confirm(bookingId, result.sent);
     if (!booking) {
       setSubmitting(false);
@@ -119,7 +131,7 @@ export function CheckoutPage() {
     void navigate({ to: "/confirmacion" });
   }
 
-  async function onPayAtPickupSubmit(e: React.FormEvent) {
+  async function onTransferSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     const guestError = validateGuest();
@@ -127,12 +139,12 @@ export function CheckoutPage() {
       setError(guestError);
       return;
     }
-    await finishBooking();
+    await finishBooking("deposit_transfer");
   }
 
   return (
     <main className="mx-auto grid w-full max-w-5xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <form onSubmit={onPayAtPickupSubmit} className="space-y-8">
+      <form onSubmit={onTransferSubmit} className="space-y-8">
         <div>
           <p className="text-sm font-medium uppercase tracking-[0.16em] text-teal">
             {copy.directPurchase[lang]}
@@ -188,7 +200,7 @@ export function CheckoutPage() {
           <div>
             <Label>{copy.tourTypeLabel[lang]}</Label>
             <p className="mt-1.5 flex h-11 items-center rounded-[var(--radius-md)] bg-bg-elevated px-4 text-sm shadow-[var(--shadow-border)]">
-              {guest.tourType === "privado" ? copy.privateTour[lang] : copy.sharedTour[lang]}
+              {isPrivate ? copy.privateTour[lang] : copy.sharedTour[lang]}
             </p>
             <Link
               to="/tours/$slug"
@@ -254,53 +266,118 @@ export function CheckoutPage() {
 
         <fieldset className="space-y-4">
           <legend className="font-display text-xl tracking-tight">{copy.payment[lang]}</legend>
-          {guest.tourType === "privado" ? (
-            <p className="text-sm text-muted">{copy.privateOnlyCard[lang]}</p>
-          ) : (
-            <div className="grid gap-2">
-              <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-[var(--radius-md)] bg-bg-elevated px-4 shadow-[var(--shadow-border)]">
-                <input
-                  type="radio"
-                  name="pay"
-                  checked={guest.payAtPickup}
-                  onChange={() => patchGuest({ payAtPickup: true })}
-                  className="accent-teal"
-                />
-                <span className="text-sm">{copy.payAtPickup[lang]}</span>
-              </label>
-              <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-[var(--radius-md)] bg-bg-elevated px-4 shadow-[var(--shadow-border)]">
-                <input
-                  type="radio"
-                  name="pay"
-                  checked={!guest.payAtPickup}
-                  onChange={() => patchGuest({ payAtPickup: false })}
-                  className="accent-teal"
-                />
-                <span className="text-sm">{copy.payNowCard[lang]}</span>
-              </label>
-            </div>
-          )}
 
-          {guest.tourType !== "privado" && guest.payAtPickup ? (
-            <p className="text-sm text-muted">{copy.payAtPickupNote[lang]}</p>
+          {isPrivate ? (
+            <>
+              <p className="text-sm text-muted">{copy.privateOnlyCard[lang]}</p>
+              <StripePaymentSection
+                amountUsd={total}
+                bookingId={bookingId}
+                tourName={tour.name.es}
+                guestEmail={guest.email}
+                canSubmit={validateGuest}
+                onPaid={(paymentIntentId) => finishBooking("full_card", paymentIntentId)}
+              />
+            </>
           ) : (
-            <StripePaymentSection
-              amountUsd={total}
-              bookingId={bookingId}
-              tourName={tour.name.es}
-              guestEmail={guest.email}
-              canSubmit={validateGuest}
-              onPaid={(paymentIntentId) => finishBooking(paymentIntentId)}
-            />
+            <>
+              <div className="grid gap-2">
+                <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-[var(--radius-md)] bg-bg-elevated px-4 shadow-[var(--shadow-border)]">
+                  <input
+                    type="radio"
+                    name="paymentPlan"
+                    checked={guest.paymentMethod !== "full_card"}
+                    onChange={() => patchGuest({ paymentMethod: depositSubMethod })}
+                    className="accent-teal"
+                  />
+                  <span className="text-sm">
+                    {copy.depositOption[lang]} — {formatUsd(depositAmount, lang)}
+                  </span>
+                </label>
+                <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-[var(--radius-md)] bg-bg-elevated px-4 shadow-[var(--shadow-border)]">
+                  <input
+                    type="radio"
+                    name="paymentPlan"
+                    checked={guest.paymentMethod === "full_card"}
+                    onChange={() => patchGuest({ paymentMethod: "full_card" })}
+                    className="accent-teal"
+                  />
+                  <span className="text-sm">{copy.fullCardOption[lang]}</span>
+                </label>
+              </div>
+
+              {guest.paymentMethod !== "full_card" ? (
+                <div className="space-y-3 rounded-[var(--radius-lg)] bg-bg-elevated p-4 shadow-[var(--shadow-border)]">
+                  <p className="text-sm font-medium">{copy.depositMethodLabel[lang]}</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(["deposit_card", "deposit_transfer"] as const).map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => {
+                          setDepositSubMethod(m);
+                          patchGuest({ paymentMethod: m });
+                        }}
+                        className={`h-11 rounded-[var(--radius-md)] text-sm font-medium transition-colors ${
+                          guest.paymentMethod === m ? "bg-teal text-foam" : "bg-surface text-ink-soft"
+                        }`}
+                      >
+                        {m === "deposit_card" ? copy.depositViaCard[lang] : copy.depositViaTransfer[lang]}
+                      </button>
+                    ))}
+                  </div>
+
+                  {guest.paymentMethod === "deposit_card" ? (
+                    <StripePaymentSection
+                      amountUsd={depositAmount}
+                      bookingId={bookingId}
+                      tourName={tour.name.es}
+                      guestEmail={guest.email}
+                      canSubmit={validateGuest}
+                      onPaid={(paymentIntentId) => finishBooking("deposit_card", paymentIntentId)}
+                    />
+                  ) : (
+                    <div className="space-y-3">
+                      <p className="text-sm text-muted">{copy.transferInstructions[lang]}</p>
+                      <dl className="space-y-1 text-sm">
+                        <Row k={copy.transferBank[lang]} v={bankTransfer.bankName} />
+                        <Row k={copy.transferHolder[lang]} v={bankTransfer.accountHolder} />
+                        <Row k={copy.transferClabe[lang]} v={bankTransfer.clabe} />
+                      </dl>
+                      <a
+                        href={`https://wa.me/${bookingNotifications.whatsapp}?text=${encodeURIComponent(
+                          `Hola, mande mi comprobante de depósito para la reserva ${bookingId}.`,
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex h-11 items-center justify-center gap-2 rounded-[var(--radius-md)] bg-surface text-sm font-medium text-ink-soft"
+                      >
+                        <MessageCircle size={16} />
+                        {copy.sendReceiptWhatsapp[lang]}
+                      </a>
+                      {error ? <p className="text-sm text-warn">{error}</p> : null}
+                      <Button type="submit" size="lg" className="w-full" disabled={submitting}>
+                        {submitting ? copy.sendingBooking[lang] : copy.confirmReservationTransfer[lang]}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <StripePaymentSection
+                  amountUsd={total}
+                  bookingId={bookingId}
+                  tourName={tour.name.es}
+                  guestEmail={guest.email}
+                  canSubmit={validateGuest}
+                  onPaid={(paymentIntentId) => finishBooking("full_card", paymentIntentId)}
+                />
+              )}
+            </>
           )}
         </fieldset>
 
-        {error ? <p className="text-sm text-warn">{error}</p> : null}
-
-        {guest.tourType !== "privado" && guest.payAtPickup ? (
-          <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={submitting}>
-            {submitting ? copy.sendingBooking[lang] : `${copy.confirmButton[lang]} ${formatUsd(total, lang)}`}
-          </Button>
+        {error && (isPrivate || guest.paymentMethod !== "deposit_transfer") ? (
+          <p className="text-sm text-warn">{error}</p>
         ) : null}
       </form>
 
@@ -319,9 +396,24 @@ export function CheckoutPage() {
           />
           <Row k={copy.rowPickup[lang]} v={draft.pickup} />
         </dl>
-        <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
-          <span className="text-sm text-muted">{copy.total[lang]}</span>
-          <span className="font-display text-2xl tabular-nums">{formatUsd(total, lang)}</span>
+        <div className="mt-4 border-t border-border pt-4">
+          {!isPrivate && guest.paymentMethod !== "full_card" ? (
+            <>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted">{copy.depositAmountLabel[lang]}</span>
+                <span className="font-medium tabular-nums">{formatUsd(depositAmount, lang)}</span>
+              </div>
+              <div className="mt-1 flex items-center justify-between text-sm">
+                <span className="text-muted">{copy.balanceDueLabel[lang]}</span>
+                <span className="tabular-nums">{formatUsd(balanceDue, lang)}</span>
+              </div>
+              <p className="mt-2 text-xs text-muted">{copy.balanceDueNote[lang]}</p>
+            </>
+          ) : null}
+          <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
+            <span className="text-sm text-muted">{copy.total[lang]}</span>
+            <span className="font-display text-2xl tabular-nums">{formatUsd(total, lang)}</span>
+          </div>
         </div>
         <Link
           to="/tours/$slug"

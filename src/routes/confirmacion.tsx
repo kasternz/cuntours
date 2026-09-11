@@ -88,9 +88,11 @@ function Confirmacion() {
               icon={Check}
               label={copy.infoPayment[lang]}
               value={
-                booking.payAtPickup
-                  ? copy.paidAtPickup[lang]
-                  : `${copy.paidByCard[lang]} ${formatUsd(booking.total, lang)}`
+                booking.paymentMethod === "full_card"
+                  ? `${copy.paidByCard[lang]} ${formatUsd(booking.total, lang)}`
+                  : booking.paymentMethod === "deposit_card"
+                    ? `${copy.depositAmountLabel[lang]}: ${formatUsd(Math.round(booking.total * 0.2), lang)}`
+                    : `${copy.depositViaTransfer[lang]}: ${formatUsd(Math.round(booking.total * 0.2), lang)}`
               }
             />
           </dl>
@@ -100,6 +102,9 @@ function Confirmacion() {
               {formatUsd(booking.total, lang)}
             </span>
           </div>
+          {booking.paymentMethod !== "full_card" ? (
+            <p className="mt-2 text-xs text-muted">{copy.balanceDueNote[lang]}</p>
+          ) : null}
         </div>
       </article>
 

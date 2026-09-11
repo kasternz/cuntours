@@ -12,5 +12,12 @@ export const bookingNotifications = {
   // Business WhatsApp number, digits only with country code, no "+" or
   // spaces (wa.me format). Shown as a fallback if the email notification
   // fails, so a paid booking never silently goes unnoticed.
+  // TODO: replace with the real bank account for deposit transfers.
   whatsapp: "529843221219",
+};
+
+export const bankTransfer = {
+  bankName: "Banco (pendiente)",
+  accountHolder: "Cuntours (pendiente)",
+  clabe: "000000000000000000",
 };

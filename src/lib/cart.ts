@@ -10,13 +10,14 @@ export type BookingDraft = {
 };
 
 export type TourType = "compartido" | "privado";
+export type PaymentMethod = "deposit_transfer" | "deposit_card" | "full_card";
 
 export type Guest = {
   name: string;
   email: string;
   phone: string;
   notes: string;
-  payAtPickup: boolean;
+  paymentMethod: PaymentMethod;
   dietary: string;
   mobility: string;
   pickupTime: string;
@@ -49,7 +50,7 @@ const emptyGuest: Guest = {
   email: "",
   phone: "",
   notes: "",
-  payAtPickup: true,
+  paymentMethod: "deposit_card",
   dietary: "",
   mobility: "",
   pickupTime: "",

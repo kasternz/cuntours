@@ -17,10 +17,22 @@ export type BookingEmailPayload = {
   guestName: string;
   guestEmail: string;
   guestPhone: string;
-  payAtPickup: boolean;
+  paymentMethod: "deposit_transfer" | "deposit_card" | "full_card";
+  depositAmount?: number;
+  balanceDue?: number;
   paymentIntentId?: string;
   total: number;
 };
+
+function paymentLabel(b: BookingEmailPayload) {
+  if (b.paymentMethod === "full_card") {
+    return `Pago completo con tarjeta (Stripe: ${b.paymentIntentId ?? "—"})`;
+  }
+  if (b.paymentMethod === "deposit_card") {
+    return `Depósito 20% con tarjeta — $${b.depositAmount} USD pagado (Stripe: ${b.paymentIntentId ?? "—"}), saldo $${b.balanceDue} USD pendiente`;
+  }
+  return `Depósito 20% por transferencia — $${b.depositAmount} USD por confirmar, saldo $${b.balanceDue} USD pendiente`;
+}
 
 function row(label: string, value: string) {
   if (!value) return "";
@@ -44,7 +56,7 @@ function buildHtml(b: BookingEmailPayload) {
     row("Nombre", b.guestName),
     row("Teléfono", b.guestPhone),
     row("Correo", b.guestEmail),
-    row("Pago", b.payAtPickup ? "Al recoger en el hotel" : `Tarjeta pagada (Stripe: ${b.paymentIntentId ?? "—"})`),
+    row("Pago", paymentLabel(b)),
     row("Total", `$${b.total} USD`),
   ].join("");
 
@@ -71,7 +83,7 @@ function buildText(b: BookingEmailPayload) {
     `Nombre: ${b.guestName}`,
     `Teléfono: ${b.guestPhone}`,
     `Correo: ${b.guestEmail}`,
-    `Pago: ${b.payAtPickup ? "Al recoger en el hotel" : `Tarjeta pagada (Stripe: ${b.paymentIntentId ?? "—"})`}`,
+    `Pago: ${paymentLabel(b)}`,
     `Total: $${b.total} USD`,
   ]
     .filter(Boolean)

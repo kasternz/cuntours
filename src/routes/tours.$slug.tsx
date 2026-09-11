@@ -76,7 +76,7 @@ function TourDetail() {
       );
       return;
     }
-    if (isPrivate) patchGuest({ payAtPickup: false });
+    if (isPrivate) patchGuest({ paymentMethod: "full_card" });
     setDraft({
       tourSlug: slug,
       date,

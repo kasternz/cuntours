@@ -14,13 +14,15 @@ export async function saveBooking(payload: BookingEmailPayload, emailSent: boole
     insert into bookings (
       id, tour_slug, tour_name, date, adults, children, tour_type, pickup,
       pickup_time, dietary, mobility, notes, guest_name, guest_email,
-      guest_phone, pay_at_pickup, payment_intent_id, total, email_sent
+      guest_phone, pay_at_pickup, payment_intent_id, total, email_sent,
+      payment_method, deposit_amount, balance_due
     ) values (
       ${payload.bookingId}, ${payload.tourSlug}, ${payload.tourName}, ${payload.date},
       ${payload.adults}, ${payload.children}, ${payload.tourType}, ${payload.pickup},
       ${payload.pickupTime}, ${payload.dietary}, ${payload.mobility}, ${payload.notes},
       ${payload.guestName}, ${payload.guestEmail}, ${payload.guestPhone},
-      ${payload.payAtPickup}, ${payload.paymentIntentId ?? null}, ${payload.total}, ${emailSent}
+      false, ${payload.paymentIntentId ?? null}, ${payload.total}, ${emailSent},
+      ${payload.paymentMethod}, ${payload.depositAmount ?? null}, ${payload.balanceDue ?? null}
     )
     on conflict (id) do nothing
   `;
@@ -51,11 +53,13 @@ export async function listBookings(limit = 100): Promise<BookingRow[]> {
     guest_name: string;
     guest_email: string;
     guest_phone: string;
-    pay_at_pickup: boolean;
     payment_intent_id: string | null;
     total: number;
     email_sent: boolean;
     created_at: string;
+    payment_method: "deposit_transfer" | "deposit_card" | "full_card";
+    deposit_amount: string | null;
+    balance_due: string | null;
   }>`select * from bookings order by created_at desc limit ${limit}`;
 
   return rows.map((r) => ({
@@ -74,7 +78,9 @@ export async function listBookings(limit = 100): Promise<BookingRow[]> {
     guestName: r.guest_name,
     guestEmail: r.guest_email,
     guestPhone: r.guest_phone,
-    payAtPickup: r.pay_at_pickup,
+    paymentMethod: r.payment_method,
+    depositAmount: r.deposit_amount ? Number(r.deposit_amount) : undefined,
+    balanceDue: r.balance_due ? Number(r.balance_due) : undefined,
     paymentIntentId: r.payment_intent_id ?? undefined,
     total: Number(r.total),
     emailSent: r.email_sent,

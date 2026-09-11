@@ -83,7 +83,11 @@ function AdminPanel() {
                   <td className="whitespace-nowrap px-4 py-3">{b.guestName}</td>
                   <td className="whitespace-nowrap px-4 py-3">{b.guestPhone}</td>
                   <td className="whitespace-nowrap px-4 py-3">
-                    {b.payAtPickup ? "Al recoger" : "Tarjeta"}
+                    {b.paymentMethod === "full_card"
+                      ? "Completo"
+                      : b.paymentMethod === "deposit_card"
+                        ? "Depósito (tarjeta)"
+                        : "Depósito (transferencia)"}
                   </td>
                   <td className="whitespace-nowrap px-4 py-3">{formatUsd(b.total)}</td>
                   <td className="whitespace-nowrap px-4 py-3">
