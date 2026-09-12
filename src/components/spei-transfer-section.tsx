@@ -19,6 +19,7 @@ export function SpeiTransferSection(props: Props) {
   const [state, setState] = useState<"loading" | "ready" | "unavailable">("loading");
   const [payment, setPayment] = useState<{
     paymentId: string;
+    amountMxn: number;
     ticketUrl: string | null;
     financialInstitution: string | null;
     reference: string | null;
@@ -42,6 +43,7 @@ export function SpeiTransferSection(props: Props) {
         if (res.ok) {
           setPayment({
             paymentId: res.paymentId,
+            amountMxn: res.amountMxn,
             ticketUrl: res.ticketUrl,
             financialInstitution: res.financialInstitution,
             reference: res.reference,
@@ -89,6 +91,15 @@ export function SpeiTransferSection(props: Props) {
   return (
     <div className="space-y-3 rounded-[var(--radius-lg)] bg-bg-elevated p-4 shadow-[var(--shadow-border)]">
       <p className="text-sm text-muted">{copy.transferInstructions[lang]}</p>
+
+      <p className="font-display text-2xl tracking-tight">
+        ${payment.amountMxn.toLocaleString("es-MX")} MXN
+      </p>
+      <p className="-mt-2 text-xs text-muted">
+        {lang === "es"
+          ? "Monto exacto a transferir (en pesos mexicanos, según el tipo de cambio de hoy)."
+          : "Exact amount to transfer (in Mexican pesos, at today's exchange rate)."}
+      </p>
 
       {payment.financialInstitution ? (
         <Row k={copy.transferBank[lang]} v={payment.financialInstitution} />
