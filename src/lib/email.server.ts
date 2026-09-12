@@ -1,6 +1,24 @@
 import { Resend } from "resend";
 import { bookingNotifications } from "./notifications";
 
+/** Sent when MercadoPago's webhook confirms a pending SPEI transfer arrived. */
+export async function sendDepositConfirmedEmail(bookingId: string, tourName: string) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return;
+  const resend = new Resend(apiKey);
+  try {
+    await resend.emails.send({
+      from: bookingNotifications.from,
+      to: bookingNotifications.to,
+      subject: `Depósito confirmado — ${bookingId} — ${tourName}`,
+      html: `<p>El depósito por transferencia SPEI de la reserva <strong>${bookingId}</strong> (${tourName}) ya llegó — confirmado automáticamente por MercadoPago.</p>`,
+      text: `El depósito por transferencia SPEI de la reserva ${bookingId} (${tourName}) ya llegó — confirmado automáticamente por MercadoPago.`,
+    });
+  } catch (err) {
+    console.error("[email] sendDepositConfirmedEmail failed:", err);
+  }
+}
+
 export type BookingEmailPayload = {
   bookingId: string;
   tourSlug: string;
@@ -23,6 +41,7 @@ export type BookingEmailPayload = {
   discountCode?: string;
   discountPct?: number;
   paymentIntentId?: string;
+  mercadopagoPaymentId?: string;
   total: number;
 };
 
@@ -33,7 +52,7 @@ function paymentLabel(b: BookingEmailPayload) {
   if (b.paymentMethod === "deposit_card") {
     return `Depósito 20% con tarjeta — $${b.depositAmount} USD pagado (Stripe: ${b.paymentIntentId ?? "—"}), saldo $${b.balanceDue} USD pendiente`;
   }
-  return `Depósito 20% por transferencia — $${b.depositAmount} USD por confirmar, saldo $${b.balanceDue} USD pendiente`;
+  return `Depósito 20% por transferencia SPEI — $${b.depositAmount} USD (MercadoPago: ${b.mercadopagoPaymentId ?? "—"}, se confirma solo cuando llegue la transferencia), saldo $${b.balanceDue} USD pendiente`;
 }
 
 function row(label: string, value: string) {

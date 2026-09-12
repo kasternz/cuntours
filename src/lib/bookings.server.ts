@@ -4,6 +4,7 @@ import type { BookingEmailPayload } from "./email.server";
 export type BookingRow = BookingEmailPayload & {
   emailSent: boolean;
   createdAt: string;
+  paymentStatus: "pending" | "confirmed";
 };
 
 /** Writes a booking to the database. Called BEFORE the notification email is
@@ -15,7 +16,8 @@ export async function saveBooking(payload: BookingEmailPayload, emailSent: boole
       id, tour_slug, tour_name, date, adults, children, tour_type, pickup,
       pickup_time, dietary, mobility, notes, guest_name, guest_email,
       guest_phone, pay_at_pickup, payment_intent_id, total, email_sent,
-      payment_method, deposit_amount, balance_due, discount_code, discount_pct
+      payment_method, deposit_amount, balance_due, discount_code, discount_pct,
+      mercadopago_payment_id, payment_status
     ) values (
       ${payload.bookingId}, ${payload.tourSlug}, ${payload.tourName}, ${payload.date},
       ${payload.adults}, ${payload.children}, ${payload.tourType}, ${payload.pickup},
@@ -23,7 +25,9 @@ export async function saveBooking(payload: BookingEmailPayload, emailSent: boole
       ${payload.guestName}, ${payload.guestEmail}, ${payload.guestPhone},
       false, ${payload.paymentIntentId ?? null}, ${payload.total}, ${emailSent},
       ${payload.paymentMethod}, ${payload.depositAmount ?? null}, ${payload.balanceDue ?? null},
-      ${payload.discountCode ?? null}, ${payload.discountPct ?? null}
+      ${payload.discountCode ?? null}, ${payload.discountPct ?? null},
+      ${payload.mercadopagoPaymentId ?? null},
+      ${payload.paymentMethod === "deposit_transfer" ? "pending" : "confirmed"}
     )
     on conflict (id) do nothing
   `;
@@ -33,6 +37,24 @@ export async function saveBooking(payload: BookingEmailPayload, emailSent: boole
 export async function markBookingEmailSent(bookingId: string) {
   const sql = await getSql();
   await sql`update bookings set email_sent = true where id = ${bookingId}`;
+}
+
+/** Called from the MercadoPago webhook once a SPEI transfer is confirmed
+ * authoritative (re-fetched from MercadoPago's API, never trusted from the
+ * webhook body alone). Returns the booking's tour name for the follow-up
+ * email, or null if no matching pending booking was found. */
+export async function confirmTransferPayment(
+  mercadopagoPaymentId: string,
+): Promise<{ bookingId: string; tourName: string } | null> {
+  const sql = await getSql();
+  const rows = await sql<{ id: string; tour_name: string }>`
+    update bookings
+    set payment_status = 'confirmed'
+    where mercadopago_payment_id = ${mercadopagoPaymentId} and payment_status = 'pending'
+    returning id, tour_name
+  `;
+  const row = rows[0];
+  return row ? { bookingId: row.id, tourName: row.tour_name } : null;
 }
 
 /** Most recent bookings first, for the admin panel. Requires an authenticated caller. */
@@ -63,6 +85,8 @@ export async function listBookings(limit = 100): Promise<BookingRow[]> {
     balance_due: string | null;
     discount_code: string | null;
     discount_pct: string | null;
+    mercadopago_payment_id: string | null;
+    payment_status: string;
   }>`select * from bookings order by created_at desc limit ${limit}`;
 
   return rows.map((r) => ({
@@ -86,6 +110,8 @@ export async function listBookings(limit = 100): Promise<BookingRow[]> {
     balanceDue: r.balance_due ? Number(r.balance_due) : undefined,
     discountCode: r.discount_code ?? undefined,
     discountPct: r.discount_pct ? Number(r.discount_pct) : undefined,
+    mercadopagoPaymentId: r.mercadopago_payment_id ?? undefined,
+    paymentStatus: r.payment_status as "pending" | "confirmed",
     paymentIntentId: r.payment_intent_id ?? undefined,
     total: Number(r.total),
     emailSent: r.email_sent,

@@ -1,6 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,7 +10,7 @@ import { useLang } from "@/i18n/context";
 import { copy } from "@/i18n/copy";
 import { submitBooking } from "@/lib/booking-fn";
 import { StripePaymentSection } from "@/components/stripe-payment-form";
-import { bankTransfer, bookingNotifications } from "@/lib/notifications";
+import { SpeiTransferSection } from "@/components/spei-transfer-section";
 import { lookupDiscount } from "@/lib/discounts";
 
 export const Route = createFileRoute("/checkout")({
@@ -26,7 +25,6 @@ export function CheckoutPage() {
   const patchGuest = useCart((s) => s.patchGuest);
   const confirm = useCart((s) => s.confirm);
   const [error, setError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
   const [depositSubMethod, setDepositSubMethod] = useState<"deposit_transfer" | "deposit_card">(
     "deposit_card",
   );
@@ -93,8 +91,11 @@ export function CheckoutPage() {
     return null;
   }
 
-  async function finishBooking(paymentMethod: PaymentMethod, paymentIntentId?: string) {
-    setSubmitting(true);
+  async function finishBooking(
+    paymentMethod: PaymentMethod,
+    paymentIntentId?: string,
+    mercadopagoPaymentId?: string,
+  ) {
     const isFull = paymentMethod === "full_card";
     let result: { saved: boolean; sent: boolean };
     try {
@@ -122,10 +123,10 @@ export function CheckoutPage() {
           balanceDue: isFull ? undefined : balanceDue,
           total,
           paymentIntentId,
+          mercadopagoPaymentId,
         },
       });
     } catch {
-      setSubmitting(false);
       setError(copy.errGeneric[lang]);
       return;
     }
@@ -136,7 +137,6 @@ export function CheckoutPage() {
     // but the booking saved, we proceed and show a WhatsApp fallback on the
     // confirmation page instead of stranding the customer here.
     if (!result.saved) {
-      setSubmitting(false);
       setError(copy.errGeneric[lang]);
       return;
     }
@@ -144,27 +144,15 @@ export function CheckoutPage() {
     patchGuest({ paymentMethod });
     const booking = confirm(total, bookingId, result.sent);
     if (!booking) {
-      setSubmitting(false);
       setError(copy.errGeneric[lang]);
       return;
     }
     void navigate({ to: "/confirmacion" });
   }
 
-  async function onTransferSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    const guestError = validateGuest();
-    if (guestError) {
-      setError(guestError);
-      return;
-    }
-    await finishBooking("deposit_transfer");
-  }
-
   return (
     <main className="mx-auto grid w-full max-w-5xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <form onSubmit={onTransferSubmit} className="space-y-8">
+      <div className="space-y-8">
         <div>
           <p className="text-sm font-medium uppercase tracking-[0.16em] text-teal">
             {copy.directPurchase[lang]}
@@ -357,29 +345,14 @@ export function CheckoutPage() {
                       onPaid={(paymentIntentId) => finishBooking("deposit_card", paymentIntentId)}
                     />
                   ) : (
-                    <div className="space-y-3">
-                      <p className="text-sm text-muted">{copy.transferInstructions[lang]}</p>
-                      <dl className="space-y-1 text-sm">
-                        <Row k={copy.transferBank[lang]} v={bankTransfer.bankName} />
-                        <Row k={copy.transferHolder[lang]} v={bankTransfer.accountHolder} />
-                        <Row k={copy.transferClabe[lang]} v={bankTransfer.clabe} />
-                      </dl>
-                      <a
-                        href={`https://wa.me/${bookingNotifications.whatsapp}?text=${encodeURIComponent(
-                          `Hola, mande mi comprobante de depósito para la reserva ${bookingId}.`,
-                        )}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex h-11 items-center justify-center gap-2 rounded-[var(--radius-md)] bg-surface text-sm font-medium text-ink-soft"
-                      >
-                        <MessageCircle size={16} />
-                        {copy.sendReceiptWhatsapp[lang]}
-                      </a>
-                      {error ? <p className="text-sm text-warn">{error}</p> : null}
-                      <Button type="submit" size="lg" className="w-full" disabled={submitting}>
-                        {submitting ? copy.sendingBooking[lang] : copy.confirmReservationTransfer[lang]}
-                      </Button>
-                    </div>
+                    <SpeiTransferSection
+                      amountUsd={depositAmount}
+                      bookingId={bookingId}
+                      guestEmail={guest.email}
+                      guestName={guest.name}
+                      canSubmit={validateGuest}
+                      onConfirmed={(mpId) => finishBooking("deposit_transfer", undefined, mpId)}
+                    />
                   )}
                 </div>
               ) : (
@@ -399,7 +372,7 @@ export function CheckoutPage() {
         {error && (isPrivate || guest.paymentMethod !== "deposit_transfer") ? (
           <p className="text-sm text-warn">{error}</p>
         ) : null}
-      </form>
+      </div>
 
       <aside className="h-fit rounded-[var(--radius-xl)] bg-bg-elevated p-5 shadow-[var(--shadow-border)] lg:sticky lg:top-24">
         <img
