@@ -12,6 +12,7 @@ import { copy } from "@/i18n/copy";
 import { submitBooking } from "@/lib/booking-fn";
 import { StripePaymentSection } from "@/components/stripe-payment-form";
 import { bankTransfer, bookingNotifications } from "@/lib/notifications";
+import { lookupDiscount } from "@/lib/discounts";
 
 export const Route = createFileRoute("/checkout")({
   component: CheckoutPage,
@@ -29,18 +30,34 @@ export function CheckoutPage() {
   const [depositSubMethod, setDepositSubMethod] = useState<"deposit_transfer" | "deposit_card">(
     "deposit_card",
   );
+  const [discountInput, setDiscountInput] = useState("");
+  const [appliedDiscount, setAppliedDiscount] = useState<{ code: string; pct: number } | null>(null);
+  const [discountError, setDiscountError] = useState("");
 
   const tours = useTours();
   const tour = draft ? getTour(tours, draft.tourSlug) : undefined;
   const isPrivate = guest.tourType === "privado";
-  const total = useMemo(() => {
+  const subtotal = useMemo(() => {
     if (!tour || !draft) return 0;
     return isPrivate
       ? privateTourPrice(tour, draft.adults, draft.children)
       : tourPrice(tour, draft.adults, draft.children);
   }, [tour, draft, isPrivate]);
+  const total = appliedDiscount
+    ? Math.round(subtotal * (1 - appliedDiscount.pct))
+    : subtotal;
   const depositAmount = Math.round(total * 0.2);
   const balanceDue = total - depositAmount;
+
+  function applyDiscount() {
+    setDiscountError("");
+    const pct = lookupDiscount(discountInput);
+    if (pct === null) {
+      setDiscountError(lang === "es" ? "Código no válido." : "Invalid code.");
+      return;
+    }
+    setAppliedDiscount({ code: discountInput.trim().toUpperCase(), pct });
+  }
 
   // One stable folio for this checkout session — used in the Stripe payment
   // intent, the sales email, and the final confirmed booking, so all three
@@ -100,6 +117,8 @@ export function CheckoutPage() {
           guestPhone: guest.phone,
           paymentMethod,
           depositAmount: isFull ? undefined : depositAmount,
+          discountCode: appliedDiscount?.code,
+          discountPct: appliedDiscount?.pct,
           balanceDue: isFull ? undefined : balanceDue,
           total,
           paymentIntentId,
@@ -412,7 +431,50 @@ export function CheckoutPage() {
           )}
           <Row k={copy.rowPickup[lang]} v={draft.pickup} />
         </dl>
+
         <div className="mt-4 border-t border-border pt-4">
+          {appliedDiscount ? (
+            <div className="flex items-center justify-between rounded-[var(--radius-sm)] bg-warn-soft px-3 py-2 text-sm">
+              <span className="text-ink">
+                {copy.discountApplied[lang]}: {appliedDiscount.code} (−{Math.round(appliedDiscount.pct * 100)}%)
+              </span>
+              <button
+                type="button"
+                className="text-xs font-medium text-teal"
+                onClick={() => {
+                  setAppliedDiscount(null);
+                  setDiscountInput("");
+                }}
+              >
+                {copy.removeCode[lang]}
+              </button>
+            </div>
+          ) : (
+            <div>
+              <Label htmlFor="discount">{copy.discountCodeLabel[lang]}</Label>
+              <div className="mt-1.5 flex gap-2">
+                <Input
+                  id="discount"
+                  value={discountInput}
+                  onChange={(e) => setDiscountInput(e.target.value)}
+                  className="uppercase"
+                />
+                <Button type="button" variant="outline" onClick={applyDiscount}>
+                  {copy.applyCode[lang]}
+                </Button>
+              </div>
+              {discountError ? <p className="mt-1 text-xs text-warn">{discountError}</p> : null}
+            </div>
+          )}
+        </div>
+
+        <div className="mt-4 border-t border-border pt-4">
+          {appliedDiscount ? (
+            <div className="flex items-center justify-between text-sm text-muted">
+              <span>{copy.total[lang]}</span>
+              <span className="line-through">{formatUsd(subtotal, lang)}</span>
+            </div>
+          ) : null}
           {!isPrivate && guest.paymentMethod !== "full_card" ? (
             <>
               <div className="flex items-center justify-between text-sm">

@@ -269,6 +269,18 @@ export function TourForm({
           <LocalizedInput label="Tamaño de grupo" value={tour.groupSize} onChange={(v) => patch({ groupSize: v })} />
           <LocalizedInput label="Idiomas" value={tour.languages} onChange={(v) => patch({ languages: v })} />
         </div>
+        <LocalizedInput
+          label="Restricciones (edad, salud, etc.)"
+          value={tour.restrictions}
+          onChange={(v) => patch({ restrictions: v })}
+          multiline
+        />
+        <LocalizedInput
+          label="Costo adicional en el sitio (dejar vacío si no aplica)"
+          value={tour.extraTax}
+          onChange={(v) => patch({ extraTax: v })}
+          multiline
+        />
       </fieldset>
 
       <fieldset className="space-y-4">

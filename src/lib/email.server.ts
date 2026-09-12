@@ -20,6 +20,8 @@ export type BookingEmailPayload = {
   paymentMethod: "deposit_transfer" | "deposit_card" | "full_card";
   depositAmount?: number;
   balanceDue?: number;
+  discountCode?: string;
+  discountPct?: number;
   paymentIntentId?: string;
   total: number;
 };
@@ -57,6 +59,7 @@ function buildHtml(b: BookingEmailPayload) {
     row("Teléfono", b.guestPhone),
     row("Correo", b.guestEmail),
     row("Pago", paymentLabel(b)),
+    row("Descuento", b.discountCode ? `${b.discountCode} (-${Math.round((b.discountPct ?? 0) * 100)}%)` : ""),
     row("Total", `$${b.total} USD`),
   ].join("");
 
@@ -84,6 +87,7 @@ function buildText(b: BookingEmailPayload) {
     `Teléfono: ${b.guestPhone}`,
     `Correo: ${b.guestEmail}`,
     `Pago: ${paymentLabel(b)}`,
+    b.discountCode ? `Descuento: ${b.discountCode} (-${Math.round((b.discountPct ?? 0) * 100)}%)` : "",
     `Total: $${b.total} USD`,
   ]
     .filter(Boolean)

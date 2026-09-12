@@ -61,6 +61,11 @@ export type Tour = {
   lastMinute?: LastMinute;
   groupSize: Localized;
   languages: Localized;
+  /** Free text: age/health/etc. restrictions shown on the tour page. */
+  restrictions: Localized;
+  /** Free text: extra fee not included in the price (e.g. site entry paid in
+   * cash on arrival) — leave blank if the tour has none. */
+  extraTax: Localized;
 };
 
 
@@ -163,5 +168,7 @@ export function blankTour(): Tour {
     image: "",
     groupSize: empty,
     languages: { es: "Español e inglés", en: "Spanish and English" },
+    restrictions: empty,
+    extraTax: empty,
   };
 }

@@ -169,6 +169,20 @@ function TourDetail() {
             ))}
           </ul>
 
+          {tour.extraTax[lang].trim() ? (
+            <div className="mt-6 rounded-[var(--radius-md)] bg-warn-soft p-4">
+              <p className="text-sm font-medium text-ink">{copy.extraTaxTitle[lang]}</p>
+              <p className="mt-1 text-sm text-ink-soft">{tour.extraTax[lang]}</p>
+            </div>
+          ) : null}
+
+          {tour.restrictions[lang].trim() ? (
+            <>
+              <h2 className="mt-8 font-display text-2xl tracking-tight">{copy.restrictionsTitle[lang]}</h2>
+              <p className="mt-2 text-sm text-ink-soft">{tour.restrictions[lang]}</p>
+            </>
+          ) : null}
+
           <h2 className="mt-8 font-display text-2xl tracking-tight">
             {lang === "es" ? "Itinerario" : "Itinerary"}
           </h2>
@@ -207,7 +221,10 @@ function TourDetail() {
                     <button
                       key={t}
                       type="button"
-                      onClick={() => patchGuest({ tourType: t })}
+                      onClick={() => {
+                        patchGuest({ tourType: t });
+                        if (t === "privado") setChildren(0);
+                      }}
                       className={`h-11 rounded-[var(--radius-md)] text-sm font-medium transition-colors ${
                         guest.tourType === t
                           ? "bg-teal text-foam"
@@ -239,8 +256,14 @@ function TourDetail() {
                   </p>
                 ) : null}
               </div>
-              <Qty label={copy.adults[lang]} value={adults} min={1} onChange={setAdults} />
-              <Qty label={copy.children[lang]} value={children} min={0} onChange={setChildren} />
+              {isPrivate ? (
+                <Qty label={copy.peopleLabel[lang]} value={adults} min={1} onChange={setAdults} />
+              ) : (
+                <>
+                  <Qty label={copy.adults[lang]} value={adults} min={1} onChange={setAdults} />
+                  <Qty label={copy.children[lang]} value={children} min={0} onChange={setChildren} />
+                </>
+              )}
               <div>
                 <Label htmlFor="pickup">{copy.pickupHotelLabel[lang]}</Label>
                 <div className="mt-1.5">

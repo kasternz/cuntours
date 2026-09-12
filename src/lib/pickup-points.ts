@@ -198,6 +198,8 @@ export const pickupPoints: PickupPoint[] = [
   { zone: "CUN", name: "GENERATION" },
   { zone: "RM", name: "NICKELODEON" },
   { zone: "RM", name: "DORADO ROYALE" },
+  { zone: "RM", name: "DORADO ROYAL" },
+  { zone: "RM", name: "HOTEL BOUTIQUE" },
   { zone: "RM", name: "VALENTIN IMPERIAL" },
   { zone: "RM", name: "VIDANTA MAYAN PALACE" },
   { zone: "RM", name: "SENSES RIVIERA MAYA // ARTISAN" },
