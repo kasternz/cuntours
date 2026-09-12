@@ -45,16 +45,59 @@ export async function markBookingEmailSent(bookingId: string) {
  * email, or null if no matching pending booking was found. */
 export async function confirmTransferPayment(
   mercadopagoPaymentId: string,
-): Promise<{ bookingId: string; tourName: string } | null> {
+): Promise<{ bookingId: string; tourName: string; guestEmail: string; guestName: string; depositAmount: number } | null> {
   const sql = await getSql();
-  const rows = await sql<{ id: string; tour_name: string }>`
+  const rows = await sql<{
+    id: string;
+    tour_name: string;
+    guest_email: string;
+    guest_name: string;
+    deposit_amount: string | null;
+  }>`
     update bookings
     set payment_status = 'confirmed'
     where mercadopago_payment_id = ${mercadopagoPaymentId} and payment_status = 'pending'
-    returning id, tour_name
+    returning id, tour_name, guest_email, guest_name, deposit_amount
   `;
   const row = rows[0];
-  return row ? { bookingId: row.id, tourName: row.tour_name } : null;
+  return row
+    ? {
+        bookingId: row.id,
+        tourName: row.tour_name,
+        guestEmail: row.guest_email,
+        guestName: row.guest_name,
+        depositAmount: row.deposit_amount ? Number(row.deposit_amount) : 0,
+      }
+    : null;
+}
+
+/** Admin-only manual override: mark a still-pending booking as paid, e.g.
+ * when a transfer was confirmed by phone/bank statement instead of the
+ * automatic webhook. Only touches rows that are actually still pending. */
+export async function manuallyConfirmPayment(bookingId: string) {
+  const sql = await getSql();
+  const rows = await sql<{
+    id: string;
+    tour_name: string;
+    guest_email: string;
+    guest_name: string;
+    deposit_amount: string | null;
+  }>`
+    update bookings
+    set payment_status = 'confirmed'
+    where id = ${bookingId} and payment_status = 'pending'
+    returning id, tour_name, guest_email, guest_name, deposit_amount
+  `;
+  const row = rows[0];
+  return row
+    ? {
+        bookingId: row.id,
+        tourName: row.tour_name,
+        guestEmail: row.guest_email,
+        guestName: row.guest_name,
+        depositAmount: row.deposit_amount ? Number(row.deposit_amount) : 0,
+      }
+    : null;
 }
 
 /** Most recent bookings first, for the admin panel. Requires an authenticated caller. */

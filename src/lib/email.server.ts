@@ -1,6 +1,39 @@
 import { Resend } from "resend";
 import { bookingNotifications } from "./notifications";
 
+/** Receipt sent to the CUSTOMER (not sales) once their payment is confirmed —
+ * synchronously for card payments, or from the webhook/manual button for SPEI. */
+export async function sendCustomerReceiptEmail(input: {
+  bookingId: string;
+  tourName: string;
+  guestEmail: string;
+  guestName: string;
+  amountPaid: number;
+  lang?: "es" | "en";
+}) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey || !input.guestEmail) return;
+  const resend = new Resend(apiKey);
+  const es = input.lang !== "en";
+  const subject = es
+    ? `Pago recibido — ${input.bookingId} — ${input.tourName}`
+    : `Payment received — ${input.bookingId} — ${input.tourName}`;
+  const body = es
+    ? `Hola ${input.guestName}, confirmamos que recibimos tu pago de $${input.amountPaid} USD para la reserva ${input.bookingId} (${input.tourName}). ¡Nos vemos pronto!`
+    : `Hi ${input.guestName}, we confirm we received your payment of $${input.amountPaid} USD for booking ${input.bookingId} (${input.tourName}). See you soon!`;
+  try {
+    await resend.emails.send({
+      from: bookingNotifications.from,
+      to: input.guestEmail,
+      subject,
+      html: `<p>${body}</p>`,
+      text: body,
+    });
+  } catch (err) {
+    console.error("[email] sendCustomerReceiptEmail failed:", err);
+  }
+}
+
 /** Sent when MercadoPago's webhook confirms a pending SPEI transfer arrived. */
 export async function sendDepositConfirmedEmail(bookingId: string, tourName: string) {
   const apiKey = process.env.RESEND_API_KEY;

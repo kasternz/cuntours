@@ -31,8 +31,17 @@ export default async function mercadopagoWebhookMiddleware(
       const { confirmTransferPayment } = await import("../../src/lib/bookings.server");
       const confirmed = await confirmTransferPayment(String(paymentId));
       if (confirmed) {
-        const { sendDepositConfirmedEmail } = await import("../../src/lib/email.server");
+        const { sendDepositConfirmedEmail, sendCustomerReceiptEmail } = await import(
+          "../../src/lib/email.server"
+        );
         await sendDepositConfirmedEmail(confirmed.bookingId, confirmed.tourName);
+        await sendCustomerReceiptEmail({
+          bookingId: confirmed.bookingId,
+          tourName: confirmed.tourName,
+          guestEmail: confirmed.guestEmail,
+          guestName: confirmed.guestName,
+          amountPaid: confirmed.depositAmount,
+        });
       }
     }
 
