@@ -5,6 +5,7 @@ export type BookingRow = BookingEmailPayload & {
   emailSent: boolean;
   createdAt: string;
   paymentStatus: "pending" | "confirmed";
+  paymentNote?: string;
 };
 
 /** Writes a booking to the database. Called BEFORE the notification email is
@@ -74,7 +75,7 @@ export async function confirmTransferPayment(
 /** Admin-only manual override: mark a still-pending booking as paid, e.g.
  * when a transfer was confirmed by phone/bank statement instead of the
  * automatic webhook. Only touches rows that are actually still pending. */
-export async function manuallyConfirmPayment(bookingId: string) {
+export async function manuallyConfirmPayment(bookingId: string, note: string) {
   const sql = await getSql();
   const rows = await sql<{
     id: string;
@@ -84,7 +85,7 @@ export async function manuallyConfirmPayment(bookingId: string) {
     deposit_amount: string | null;
   }>`
     update bookings
-    set payment_status = 'confirmed'
+    set payment_status = 'confirmed', payment_note = ${note || null}
     where id = ${bookingId} and payment_status = 'pending'
     returning id, tour_name, guest_email, guest_name, deposit_amount
   `;
@@ -130,6 +131,7 @@ export async function listBookings(limit = 100): Promise<BookingRow[]> {
     discount_pct: string | null;
     mercadopago_payment_id: string | null;
     payment_status: string;
+    payment_note: string | null;
   }>`select * from bookings order by created_at desc limit ${limit}`;
 
   return rows.map((r) => ({
@@ -155,6 +157,7 @@ export async function listBookings(limit = 100): Promise<BookingRow[]> {
     discountPct: r.discount_pct ? Number(r.discount_pct) : undefined,
     mercadopagoPaymentId: r.mercadopago_payment_id ?? undefined,
     paymentStatus: r.payment_status as "pending" | "confirmed",
+    paymentNote: r.payment_note ?? undefined,
     paymentIntentId: r.payment_intent_id ?? undefined,
     total: Number(r.total),
     emailSent: r.email_sent,

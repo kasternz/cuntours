@@ -60,7 +60,7 @@ export const listBookingsFn = createServerFn({ method: "GET" })
  * same receipt the automatic path would have sent. */
 export const adminMarkPaidFn = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .validator((data: { bookingId: string }) => data)
+  .validator((data: { bookingId: string; note: string }) => data)
   .handler(async ({ data }) => {
     const { getSessionUser } = await import("./auth/verify.server");
     const { isAllowedAdminEmail } = await import("./auth/admin-allowlist.server");
@@ -69,7 +69,7 @@ export const adminMarkPaidFn = createServerFn({ method: "POST" })
       return { ok: false as const, reason: "not_authorized" as const };
     }
     const { manuallyConfirmPayment } = await import("./bookings.server");
-    const confirmed = await manuallyConfirmPayment(data.bookingId);
+    const confirmed = await manuallyConfirmPayment(data.bookingId, data.note);
     if (!confirmed) {
       return { ok: false as const, reason: "not_found_or_already_paid" as const };
     }

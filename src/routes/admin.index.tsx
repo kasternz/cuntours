@@ -42,9 +42,14 @@ function BookingsPage() {
   }, [load]);
 
   async function markPaid(bookingId: string) {
+    const note = window.prompt(
+      "¿Cómo se confirmó el pago? (ej. \"Efectivo\", \"Transferencia confirmada por WhatsApp\", un ID de transacción — opcional, deja vacío si no aplica)",
+      "",
+    );
+    if (note === null) return; // cancelled
     setMarkingPaid(bookingId);
     try {
-      await adminMarkPaidFn({ data: { bookingId } });
+      await adminMarkPaidFn({ data: { bookingId, note: note.trim() } });
       load();
     } catch {
       setError("No se pudo marcar como pagado.");
@@ -72,10 +77,10 @@ function BookingsPage() {
 
       {bookings && bookings.length > 0 ? (
         <div className="mt-6 overflow-x-auto rounded-[var(--radius-lg)] shadow-[var(--shadow-border)]">
-          <table className="w-full min-w-[960px] text-left text-sm">
+          <table className="w-full min-w-[1100px] text-left text-sm">
             <thead className="bg-bg-elevated text-xs uppercase tracking-wide text-muted">
               <tr>
-                {["Folio", "Tour", "Fecha", "Personas", "Tipo", "Recogida", "Cliente", "Teléfono", "Pago", "Estado", "Total", "Correo", "Creada"].map(
+                {["Folio", "Tour", "Fecha", "Personas", "Tipo", "Recogida", "Cliente", "Teléfono", "Pago", "Estado", "Depósito / Saldo", "Total", "Correo", "Creada"].map(
                   (h) => (
                     <th key={h} className="whitespace-nowrap px-4 py-3 font-medium">
                       {h}
@@ -85,57 +90,75 @@ function BookingsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {bookings.map((b) => (
-                <tr key={b.bookingId} className="bg-bg">
-                  <td className="whitespace-nowrap px-4 py-3 font-medium">{b.bookingId}</td>
-                  <td className="whitespace-nowrap px-4 py-3">{b.tourName}</td>
-                  <td className="whitespace-nowrap px-4 py-3">{b.date}</td>
-                  <td className="whitespace-nowrap px-4 py-3">
-                    {b.adults}A{b.children ? ` · ${b.children}N` : ""}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3">
-                    {b.tourType === "privado" ? "Privado" : "Compartido"}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3">{b.pickup}</td>
-                  <td className="whitespace-nowrap px-4 py-3">{b.guestName}</td>
-                  <td className="whitespace-nowrap px-4 py-3">{b.guestPhone}</td>
-                  <td className="whitespace-nowrap px-4 py-3">{paymentDetail(b)}</td>
-                  <td className="whitespace-nowrap px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      {b.paymentStatus === "pending" ? (
-                        <span className="rounded-full bg-warn-soft px-2 py-0.5 text-xs font-medium text-warn">
-                          Pendiente
-                        </span>
+              {bookings.map((b) => {
+                const hasBalance = b.paymentMethod !== "full_card" && !!b.depositAmount;
+                return (
+                  <tr key={b.bookingId} className="bg-bg">
+                    <td className="whitespace-nowrap px-4 py-3 font-medium">{b.bookingId}</td>
+                    <td className="whitespace-nowrap px-4 py-3">{b.tourName}</td>
+                    <td className="whitespace-nowrap px-4 py-3">{b.date}</td>
+                    <td className="whitespace-nowrap px-4 py-3">
+                      {b.adults}A{b.children ? ` · ${b.children}N` : ""}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3">
+                      {b.tourType === "privado" ? "Privado" : "Compartido"}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3">{b.pickup}</td>
+                    <td className="whitespace-nowrap px-4 py-3">{b.guestName}</td>
+                    <td className="whitespace-nowrap px-4 py-3">{b.guestPhone}</td>
+                    <td className="whitespace-nowrap px-4 py-3">{paymentDetail(b)}</td>
+                    <td className="whitespace-nowrap px-4 py-3">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          {b.paymentStatus === "pending" ? (
+                            <span className="rounded-full bg-warn-soft px-2 py-0.5 text-xs font-medium text-warn">
+                              Pendiente
+                            </span>
+                          ) : (
+                            <span className="rounded-full bg-teal/10 px-2 py-0.5 text-xs font-medium text-teal">
+                              Confirmado
+                            </span>
+                          )}
+                          {b.paymentStatus === "pending" ? (
+                            <button
+                              type="button"
+                              onClick={() => markPaid(b.bookingId)}
+                              disabled={markingPaid === b.bookingId}
+                              className="text-xs font-medium text-teal underline-offset-2 hover:underline disabled:opacity-50"
+                            >
+                              {markingPaid === b.bookingId ? "Marcando…" : "Marcar pagado"}
+                            </button>
+                          ) : null}
+                        </div>
+                        {b.paymentNote ? (
+                          <span className="text-xs italic text-muted">"{b.paymentNote}"</span>
+                        ) : null}
+                      </div>
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3">
+                      {hasBalance ? (
+                        <div className="text-xs">
+                          <p>Depósito: {formatUsd(b.depositAmount ?? 0)}</p>
+                          <p className="text-warn">Saldo: {formatUsd(b.balanceDue ?? 0)}</p>
+                        </div>
                       ) : (
-                        <span className="rounded-full bg-teal/10 px-2 py-0.5 text-xs font-medium text-teal">
-                          Confirmado
-                        </span>
+                        <span className="text-xs text-muted">—</span>
                       )}
-                      {b.paymentStatus === "pending" ? (
-                        <button
-                          type="button"
-                          onClick={() => markPaid(b.bookingId)}
-                          disabled={markingPaid === b.bookingId}
-                          className="text-xs font-medium text-teal underline-offset-2 hover:underline disabled:opacity-50"
-                        >
-                          {markingPaid === b.bookingId ? "Marcando…" : "Marcar pagado"}
-                        </button>
-                      ) : null}
-                    </div>
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3">{formatUsd(b.total)}</td>
-                  <td className="whitespace-nowrap px-4 py-3">
-                    {b.emailSent ? (
-                      <span className="text-teal">Enviado</span>
-                    ) : (
-                      <span className="text-warn">Falló</span>
-                    )}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-muted">
-                    {new Date(b.createdAt).toLocaleString("es-MX")}
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3">{formatUsd(b.total)}</td>
+                    <td className="whitespace-nowrap px-4 py-3">
+                      {b.emailSent ? (
+                        <span className="text-teal">Enviado</span>
+                      ) : (
+                        <span className="text-warn">Falló</span>
+                      )}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 text-muted">
+                      {new Date(b.createdAt).toLocaleString("es-MX")}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
