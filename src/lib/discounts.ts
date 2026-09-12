@@ -4,10 +4,10 @@
  * Codes are matched case-insensitively.
  */
 export const discountCodes: Record<string, number> = {
-  CUN10: 0.1,
-  CUN15: 0.15,
-  CUN20: 0.2,
-  CUN50: 0.5,
+  CUNT10X7Q: 0.1,
+  CUNT15M4R: 0.15,
+  CUNT20K9Z: 0.2,
+  CUNT50V2P: 0.5,
 };
 
 export function lookupDiscount(code: string): number | null {
