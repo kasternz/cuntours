@@ -46,11 +46,16 @@ export type BookingEmailPayload = {
 };
 
 function paymentLabel(b: BookingEmailPayload) {
+  const cardRef = b.paymentIntentId
+    ? `Stripe: ${b.paymentIntentId}`
+    : b.mercadopagoPaymentId
+      ? `MercadoPago: ${b.mercadopagoPaymentId}`
+      : "—";
   if (b.paymentMethod === "full_card") {
-    return `Pago completo con tarjeta (Stripe: ${b.paymentIntentId ?? "—"})`;
+    return `Pago completo con tarjeta (${cardRef})`;
   }
   if (b.paymentMethod === "deposit_card") {
-    return `Depósito 20% con tarjeta — $${b.depositAmount} USD pagado (Stripe: ${b.paymentIntentId ?? "—"}), saldo $${b.balanceDue} USD pendiente`;
+    return `Depósito 20% con tarjeta — $${b.depositAmount} USD pagado (${cardRef}), saldo $${b.balanceDue} USD pendiente`;
   }
   return `Depósito 20% por transferencia SPEI — $${b.depositAmount} USD (MercadoPago: ${b.mercadopagoPaymentId ?? "—"}, se confirma solo cuando llegue la transferencia), saldo $${b.balanceDue} USD pendiente`;
 }

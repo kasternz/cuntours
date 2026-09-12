@@ -28,6 +28,50 @@ async function usdToMxn(amountUsd: number): Promise<number> {
 }
 
 /**
+ * Processes a card payment already tokenized client-side by the MercadoPago
+ * CardPayment Brick — the raw card number never reaches our server, same
+ * security model as Stripe's Payment Element.
+ */
+export async function createCardPayment(input: {
+  amountUsd: number;
+  bookingId: string;
+  guestEmail: string;
+  token: string;
+  paymentMethodId: string;
+  issuerId: string;
+  installments: number;
+}) {
+  const payment = client();
+  if (!payment) return { ok: false as const, reason: "missing_token" as const };
+
+  const amountMxn = await usdToMxn(input.amountUsd);
+
+  try {
+    const result = await payment.create({
+      body: {
+        transaction_amount: amountMxn,
+        token: input.token,
+        description: `Cuntours ${input.bookingId}`,
+        installments: input.installments,
+        payment_method_id: input.paymentMethodId,
+        issuer_id: Number(input.issuerId),
+        external_reference: input.bookingId,
+        payer: { email: input.guestEmail },
+      },
+      requestOptions: { idempotencyKey: `${input.bookingId}-card` },
+    });
+
+    if (result.status === "approved") {
+      return { ok: true as const, paymentId: String(result.id) };
+    }
+    return { ok: false as const, reason: "declined" as const, statusDetail: result.status_detail ?? null };
+  } catch (err) {
+    console.error("[mercadopago] createCardPayment failed:", err);
+    return { ok: false as const, reason: "mp_error" as const };
+  }
+}
+
+/**
  * Creates a real SPEI transfer request. MercadoPago returns a dynamic CLABE
  * (via transaction_details) the customer transfers to from their own bank
  * app — no manual WhatsApp receipt needed. Status starts "pending" and

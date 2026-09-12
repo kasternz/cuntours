@@ -38,18 +38,27 @@ function Confirmacion() {
   }
 
   const tour = getTour(tours, booking.tourSlug);
+  const isPendingTransfer = booking.paymentMethod === "deposit_transfer";
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
       <p className="text-sm font-medium uppercase tracking-[0.16em] text-teal">
         {copy.directPurchase[lang]}
       </p>
-      <h1 className="mt-2 font-display text-4xl tracking-tight">{copy.bookingConfirmed[lang]}</h1>
+      <h1 className="mt-2 font-display text-4xl tracking-tight">
+        {isPendingTransfer ? copy.bookingPending[lang] : copy.bookingConfirmed[lang]}
+      </h1>
       <p className="mt-3 text-base leading-relaxed text-muted">
         {copy.folioPrefix[lang]}{" "}
         <span className="font-medium tabular-nums text-ink">{booking.id}</span>
         {copy.folioSuffix[lang]}
       </p>
+
+      {isPendingTransfer ? (
+        <div className="mt-4 rounded-[var(--radius-lg)] bg-warn-soft p-4 text-sm text-ink">
+          {copy.pendingTransferWarning[lang]}
+        </div>
+      ) : null}
 
       {!booking.emailSent ? (
         <a

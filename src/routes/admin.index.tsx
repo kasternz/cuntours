@@ -33,7 +33,7 @@ function BookingsPage() {
           <table className="w-full min-w-[900px] text-left text-sm">
             <thead className="bg-bg-elevated text-xs uppercase tracking-wide text-muted">
               <tr>
-                {["Folio", "Tour", "Fecha", "Personas", "Tipo", "Recogida", "Cliente", "Teléfono", "Pago", "Total", "Correo", "Creada"].map(
+                {["Folio", "Tour", "Fecha", "Personas", "Tipo", "Recogida", "Cliente", "Teléfono", "Pago", "Estado", "Total", "Correo", "Creada"].map(
                   (h) => (
                     <th key={h} className="whitespace-nowrap px-4 py-3 font-medium">
                       {h}
@@ -63,6 +63,17 @@ function BookingsPage() {
                       : b.paymentMethod === "deposit_card"
                         ? "Depósito (tarjeta)"
                         : "Depósito (transferencia)"}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3">
+                    {b.paymentStatus === "pending" ? (
+                      <span className="rounded-full bg-warn-soft px-2 py-0.5 text-xs font-medium text-warn">
+                        Pendiente
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-teal/10 px-2 py-0.5 text-xs font-medium text-teal">
+                        Confirmado
+                      </span>
+                    )}
                   </td>
                   <td className="whitespace-nowrap px-4 py-3">{formatUsd(b.total)}</td>
                   <td className="whitespace-nowrap px-4 py-3">

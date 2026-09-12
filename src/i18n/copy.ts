@@ -223,6 +223,11 @@ export const copy = {
     en: "Once you confirm a tour, the confirmation code and pickup details show up here.",
   },
   bookingConfirmed: { es: "Reserva confirmada", en: "Booking confirmed" },
+  bookingPending: { es: "Reserva registrada — pendiente de pago", en: "Booking recorded — payment pending" },
+  pendingTransferWarning: {
+    es: "Tu lugar todavía no está agendado. Se confirma automáticamente en cuanto tu transferencia llegue — hasta entonces, este cupo no está garantizado.",
+    en: "Your spot isn't scheduled yet. It confirms automatically once your transfer arrives — until then, this spot isn't guaranteed.",
+  },
   folioPrefix: { es: "Folio", en: "Confirmation code" },
   folioSuffix: {
     es: ". Te recogemos en el hotel. Revisa el correo — y guarda este folio.",

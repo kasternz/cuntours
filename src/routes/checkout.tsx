@@ -11,6 +11,7 @@ import { copy } from "@/i18n/copy";
 import { submitBooking } from "@/lib/booking-fn";
 import { StripePaymentSection } from "@/components/stripe-payment-form";
 import { SpeiTransferSection } from "@/components/spei-transfer-section";
+import { MercadoPagoCardSection } from "@/components/mercadopago-card-section";
 import { lookupDiscount } from "@/lib/discounts";
 
 export const Route = createFileRoute("/checkout")({
@@ -28,6 +29,7 @@ export function CheckoutPage() {
   const [depositSubMethod, setDepositSubMethod] = useState<"deposit_transfer" | "deposit_card">(
     "deposit_card",
   );
+  const [cardProcessor, setCardProcessor] = useState<"stripe" | "mercadopago">("stripe");
   const [discountInput, setDiscountInput] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState<{ code: string; pct: number } | null>(null);
   const [discountError, setDiscountError] = useState("");
@@ -148,6 +150,49 @@ export function CheckoutPage() {
       return;
     }
     void navigate({ to: "/confirmacion" });
+  }
+
+  function renderCardPayment(
+    amount: number,
+    onPaidWithProcessor: (processor: "stripe" | "mercadopago", id: string) => Promise<void>,
+  ) {
+    const onPaid = (id: string) => onPaidWithProcessor(cardProcessor, id);
+    return (
+      <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-2">
+          {(["stripe", "mercadopago"] as const).map((p) => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => setCardProcessor(p)}
+              className={`h-10 rounded-[var(--radius-md)] text-xs font-medium ${
+                cardProcessor === p ? "bg-teal text-foam" : "bg-surface text-ink-soft"
+              }`}
+            >
+              {p === "stripe" ? "Stripe" : "MercadoPago"}
+            </button>
+          ))}
+        </div>
+        {cardProcessor === "stripe" ? (
+          <StripePaymentSection
+            amountUsd={amount}
+            bookingId={bookingId}
+            tourName={tour!.name.es}
+            guestEmail={guest.email}
+            canSubmit={validateGuest}
+            onPaid={onPaid}
+          />
+        ) : (
+          <MercadoPagoCardSection
+            amountUsd={amount}
+            bookingId={bookingId}
+            guestEmail={guest.email}
+            canSubmit={validateGuest}
+            onPaid={onPaid}
+          />
+        )}
+      </div>
+    );
   }
 
   return (
@@ -336,14 +381,13 @@ export function CheckoutPage() {
                   </div>
 
                   {guest.paymentMethod === "deposit_card" ? (
-                    <StripePaymentSection
-                      amountUsd={depositAmount}
-                      bookingId={bookingId}
-                      tourName={tour.name.es}
-                      guestEmail={guest.email}
-                      canSubmit={validateGuest}
-                      onPaid={(paymentIntentId) => finishBooking("deposit_card", paymentIntentId)}
-                    />
+                    renderCardPayment(depositAmount, (processor, id) =>
+                      finishBooking(
+                        "deposit_card",
+                        processor === "stripe" ? id : undefined,
+                        processor === "mercadopago" ? id : undefined,
+                      ),
+                    )
                   ) : (
                     <SpeiTransferSection
                       amountUsd={depositAmount}
@@ -356,14 +400,13 @@ export function CheckoutPage() {
                   )}
                 </div>
               ) : (
-                <StripePaymentSection
-                  amountUsd={total}
-                  bookingId={bookingId}
-                  tourName={tour.name.es}
-                  guestEmail={guest.email}
-                  canSubmit={validateGuest}
-                  onPaid={(paymentIntentId) => finishBooking("full_card", paymentIntentId)}
-                />
+                renderCardPayment(total, (processor, id) =>
+                  finishBooking(
+                    "full_card",
+                    processor === "stripe" ? id : undefined,
+                    processor === "mercadopago" ? id : undefined,
+                  ),
+                )
               )}
             </>
           )}
