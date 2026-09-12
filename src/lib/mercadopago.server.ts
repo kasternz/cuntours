@@ -60,6 +60,10 @@ export async function createSpeiPayment(input: {
           last_name: rest.join(" ") || "Cuntours",
         },
       },
+      // Required by MercadoPago's API. Using the booking id means a retried
+      // request can never accidentally create a second SPEI payment for the
+      // same booking.
+      requestOptions: { idempotencyKey: input.bookingId },
     });
 
     return {
