@@ -1,6 +1,5 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
 import { AuthProvider } from "@/lib/auth/provider";
-import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { LastMinuteStrip } from "@/components/last-minute-strip";
@@ -47,7 +46,6 @@ function RootLayout() {
         <HeadContent />
       </head>
       <body className="flex min-h-dvh flex-col bg-bg text-ink">
-        <PreviewHostBridge />
         <I18nProvider>
           <AuthProvider>
             <SiteHeader />
