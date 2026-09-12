@@ -159,19 +159,22 @@ export function CheckoutPage() {
     const onPaid = (id: string) => onPaidWithProcessor(cardProcessor, id);
     return (
       <div className="space-y-3">
-        <div className="grid grid-cols-2 gap-2">
-          {(["stripe", "mercadopago"] as const).map((p) => (
-            <button
-              key={p}
-              type="button"
-              onClick={() => setCardProcessor(p)}
-              className={`h-10 rounded-[var(--radius-md)] text-xs font-medium ${
-                cardProcessor === p ? "bg-teal text-foam" : "bg-surface text-ink-soft"
-              }`}
-            >
-              {p === "stripe" ? "Stripe" : "MercadoPago"}
-            </button>
-          ))}
+        <div>
+          <div className="grid grid-cols-2 gap-2">
+            {(["stripe", "mercadopago"] as const).map((p) => (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setCardProcessor(p)}
+                className={`h-10 rounded-[var(--radius-md)] text-xs font-medium ${
+                  cardProcessor === p ? "bg-teal text-foam" : "bg-surface text-ink-soft"
+                }`}
+              >
+                {p === "stripe" ? copy.cardOriginIntl[lang] : copy.cardOriginMx[lang]}
+              </button>
+            ))}
+          </div>
+          <p className="mt-1 text-xs text-muted">{copy.cardOriginHint[lang]}</p>
         </div>
         {cardProcessor === "stripe" ? (
           <StripePaymentSection

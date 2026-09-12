@@ -97,6 +97,12 @@ export const copy = {
   applyCode: { es: "Aplicar", en: "Apply" },
   discountApplied: { es: "Descuento aplicado", en: "Discount applied" },
   removeCode: { es: "Quitar", en: "Remove" },
+  cardOriginIntl: { es: "Tarjeta internacional", en: "International card" },
+  cardOriginMx: { es: "Tarjeta mexicana", en: "Mexican card" },
+  cardOriginHint: {
+    es: "Elige según el país donde se emitió tu tarjeta.",
+    en: "Choose based on the country your card was issued in.",
+  },
   alsoLike: { es: "También te puede interesar", en: "You might also like" },
   perAdultChild: { es: "por adulto · niño 60%", en: "per adult · child 60%" },
   perAdult: { es: "por adulto", en: "per adult" },
