@@ -1,33 +1,87 @@
 import { Resend } from "resend";
 import { bookingNotifications } from "./notifications";
 
-/** Receipt sent to the CUSTOMER (not sales) once their payment is confirmed —
- * synchronously for card payments, or from the webhook/manual button for SPEI. */
+/** The real "ticket" the customer keeps — sent once payment is confirmed
+ * (immediately for card, or from the webhook/manual button for SPEI).
+ * Everything they need for the day of the tour, in their own language. */
 export async function sendCustomerReceiptEmail(input: {
   bookingId: string;
   tourName: string;
   guestEmail: string;
   guestName: string;
-  amountPaid: number;
+  date: string;
+  adults: number;
+  children: number;
+  tourType: "compartido" | "privado";
+  pickup: string;
+  pickupTime: string;
+  total: number;
+  depositAmount?: number;
+  balanceDue?: number;
   lang?: "es" | "en";
 }) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey || !input.guestEmail) return;
   const resend = new Resend(apiKey);
   const es = input.lang !== "en";
+
+  const people = input.children
+    ? es
+      ? `${input.adults} adultos, ${input.children} niños`
+      : `${input.adults} adults, ${input.children} children`
+    : es
+      ? `${input.adults} adultos`
+      : `${input.adults} adults`;
+
+  const paymentLine = input.balanceDue
+    ? es
+      ? `Depósito pagado: $${input.depositAmount} USD — Saldo a pagar en el tour: $${input.balanceDue} USD`
+      : `Deposit paid: $${input.depositAmount} USD — Balance due at the tour: $${input.balanceDue} USD`
+    : es
+      ? `Pagado completo: $${input.total} USD`
+      : `Paid in full: $${input.total} USD`;
+
+  const rows: [string, string][] = [
+    [es ? "Folio" : "Confirmation code", input.bookingId],
+    [es ? "Tour" : "Tour", input.tourName],
+    [es ? "Fecha" : "Date", input.date],
+    [es ? "Viajeros" : "Travelers", people],
+    [es ? "Tipo" : "Type", input.tourType === "privado" ? (es ? "Privado" : "Private") : es ? "Compartido" : "Shared"],
+    [es ? "Recogida" : "Pickup", input.pickup],
+    [es ? "Hora de recogida" : "Pickup time", input.pickupTime || (es ? "Por confirmar" : "To be confirmed")],
+    [es ? "Pago" : "Payment", paymentLine],
+  ];
+
   const subject = es
-    ? `Pago recibido — ${input.bookingId} — ${input.tourName}`
-    : `Payment received — ${input.bookingId} — ${input.tourName}`;
-  const body = es
-    ? `Hola ${input.guestName}, confirmamos que recibimos tu pago de $${input.amountPaid} USD para la reserva ${input.bookingId} (${input.tourName}). ¡Nos vemos pronto!`
-    : `Hi ${input.guestName}, we confirm we received your payment of $${input.amountPaid} USD for booking ${input.bookingId} (${input.tourName}). See you soon!`;
+    ? `Tu boleto — ${input.bookingId} — ${input.tourName}`
+    : `Your ticket — ${input.bookingId} — ${input.tourName}`;
+
+  const greeting = es
+    ? `Hola ${input.guestName}, tu reserva está confirmada. Guarda este correo — es tu boleto para el tour.`
+    : `Hi ${input.guestName}, your booking is confirmed. Keep this email — it's your ticket for the tour.`;
+
+  const htmlRows = rows
+    .map(
+      ([label, value]) =>
+        `<tr><td style="padding:6px 16px 6px 0;color:#5b6b70;font-size:13px;white-space:nowrap;">${label}</td><td style="padding:6px 0;font-size:14px;color:#132026;font-weight:500;">${value}</td></tr>`,
+    )
+    .join("");
+
+  const html = `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;">
+    <h2 style="color:#0D6E6A;">${es ? "Tu boleto" : "Your ticket"}</h2>
+    <p style="color:#132026;font-size:14px;">${greeting}</p>
+    <table style="border-collapse:collapse;width:100%;margin-top:12px;">${htmlRows}</table>
+  </div>`;
+
+  const text = [greeting, "", ...rows.map(([label, value]) => `${label}: ${value}`)].join("\n");
+
   try {
     await resend.emails.send({
       from: bookingNotifications.from,
       to: input.guestEmail,
       subject,
-      html: `<p>${body}</p>`,
-      text: body,
+      html,
+      text,
     });
   } catch (err) {
     console.error("[email] sendCustomerReceiptEmail failed:", err);
@@ -75,6 +129,7 @@ export type BookingEmailPayload = {
   discountPct?: number;
   paymentIntentId?: string;
   mercadopagoPaymentId?: string;
+  lang?: "es" | "en";
   total: number;
 };
 

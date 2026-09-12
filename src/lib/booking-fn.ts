@@ -33,7 +33,16 @@ export const submitBooking = createServerFn({ method: "POST" })
         tourName: data.tourName,
         guestEmail: data.guestEmail,
         guestName: data.guestName,
-        amountPaid: data.paymentMethod === "deposit_card" ? (data.depositAmount ?? data.total) : data.total,
+        date: data.date,
+        adults: data.adults,
+        children: data.children,
+        tourType: data.tourType,
+        pickup: data.pickup,
+        pickupTime: data.pickupTime,
+        total: data.total,
+        depositAmount: data.depositAmount,
+        balanceDue: data.balanceDue,
+        lang: data.lang,
       });
     }
 
@@ -74,12 +83,6 @@ export const adminMarkPaidFn = createServerFn({ method: "POST" })
       return { ok: false as const, reason: "not_found_or_already_paid" as const };
     }
     const { sendCustomerReceiptEmail } = await import("./email.server");
-    void sendCustomerReceiptEmail({
-      bookingId: confirmed.bookingId,
-      tourName: confirmed.tourName,
-      guestEmail: confirmed.guestEmail,
-      guestName: confirmed.guestName,
-      amountPaid: confirmed.depositAmount,
-    });
+    void sendCustomerReceiptEmail(confirmed);
     return { ok: true as const };
   });

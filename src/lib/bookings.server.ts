@@ -8,6 +8,60 @@ export type BookingRow = BookingEmailPayload & {
   paymentNote?: string;
 };
 
+/** Full ticket details returned to whoever confirms a pending payment
+ * (webhook or manual button), so the customer receipt email has everything
+ * it needs without a second query. */
+export type ConfirmedPaymentDetails = {
+  bookingId: string;
+  tourName: string;
+  guestEmail: string;
+  guestName: string;
+  date: string;
+  adults: number;
+  children: number;
+  tourType: "compartido" | "privado";
+  pickup: string;
+  pickupTime: string;
+  total: number;
+  depositAmount?: number;
+  balanceDue?: number;
+  lang: "es" | "en";
+};
+
+function toConfirmedDetails(row: {
+  id: string;
+  tour_name: string;
+  guest_email: string;
+  guest_name: string;
+  date: string;
+  adults: number;
+  children: number;
+  tour_type: "compartido" | "privado";
+  pickup: string;
+  pickup_time: string;
+  total: string;
+  deposit_amount: string | null;
+  balance_due: string | null;
+  lang: string;
+}): ConfirmedPaymentDetails {
+  return {
+    bookingId: row.id,
+    tourName: row.tour_name,
+    guestEmail: row.guest_email,
+    guestName: row.guest_name,
+    date: row.date,
+    adults: row.adults,
+    children: row.children,
+    tourType: row.tour_type,
+    pickup: row.pickup,
+    pickupTime: row.pickup_time,
+    total: Number(row.total),
+    depositAmount: row.deposit_amount ? Number(row.deposit_amount) : undefined,
+    balanceDue: row.balance_due ? Number(row.balance_due) : undefined,
+    lang: row.lang === "en" ? "en" : "es",
+  };
+}
+
 /** Writes a booking to the database. Called BEFORE the notification email is
  * attempted — this is what makes a booking durable even if email fails. */
 export async function saveBooking(payload: BookingEmailPayload, emailSent: boolean) {
@@ -18,7 +72,7 @@ export async function saveBooking(payload: BookingEmailPayload, emailSent: boole
       pickup_time, dietary, mobility, notes, guest_name, guest_email,
       guest_phone, pay_at_pickup, payment_intent_id, total, email_sent,
       payment_method, deposit_amount, balance_due, discount_code, discount_pct,
-      mercadopago_payment_id, payment_status
+      mercadopago_payment_id, payment_status, lang
     ) values (
       ${payload.bookingId}, ${payload.tourSlug}, ${payload.tourName}, ${payload.date},
       ${payload.adults}, ${payload.children}, ${payload.tourType}, ${payload.pickup},
@@ -28,7 +82,8 @@ export async function saveBooking(payload: BookingEmailPayload, emailSent: boole
       ${payload.paymentMethod}, ${payload.depositAmount ?? null}, ${payload.balanceDue ?? null},
       ${payload.discountCode ?? null}, ${payload.discountPct ?? null},
       ${payload.mercadopagoPaymentId ?? null},
-      ${payload.paymentMethod === "deposit_transfer" ? "pending" : "confirmed"}
+      ${payload.paymentMethod === "deposit_transfer" ? "pending" : "confirmed"},
+      ${payload.lang ?? "es"}
     )
     on conflict (id) do nothing
   `;
@@ -42,63 +97,40 @@ export async function markBookingEmailSent(bookingId: string) {
 
 /** Called from the MercadoPago webhook once a SPEI transfer is confirmed
  * authoritative (re-fetched from MercadoPago's API, never trusted from the
- * webhook body alone). Returns the booking's tour name for the follow-up
+ * webhook body alone). Returns everything needed for the customer's ticket
  * email, or null if no matching pending booking was found. */
 export async function confirmTransferPayment(
   mercadopagoPaymentId: string,
-): Promise<{ bookingId: string; tourName: string; guestEmail: string; guestName: string; depositAmount: number } | null> {
+): Promise<ConfirmedPaymentDetails | null> {
   const sql = await getSql();
-  const rows = await sql<{
-    id: string;
-    tour_name: string;
-    guest_email: string;
-    guest_name: string;
-    deposit_amount: string | null;
-  }>`
+  const rows = await sql<Parameters<typeof toConfirmedDetails>[0]>`
     update bookings
     set payment_status = 'confirmed'
     where mercadopago_payment_id = ${mercadopagoPaymentId} and payment_status = 'pending'
-    returning id, tour_name, guest_email, guest_name, deposit_amount
+    returning id, tour_name, guest_email, guest_name, date, adults, children,
+      tour_type, pickup, pickup_time, total, deposit_amount, balance_due, lang
   `;
   const row = rows[0];
-  return row
-    ? {
-        bookingId: row.id,
-        tourName: row.tour_name,
-        guestEmail: row.guest_email,
-        guestName: row.guest_name,
-        depositAmount: row.deposit_amount ? Number(row.deposit_amount) : 0,
-      }
-    : null;
+  return row ? toConfirmedDetails(row) : null;
 }
 
 /** Admin-only manual override: mark a still-pending booking as paid, e.g.
  * when a transfer was confirmed by phone/bank statement instead of the
  * automatic webhook. Only touches rows that are actually still pending. */
-export async function manuallyConfirmPayment(bookingId: string, note: string) {
+export async function manuallyConfirmPayment(
+  bookingId: string,
+  note: string,
+): Promise<ConfirmedPaymentDetails | null> {
   const sql = await getSql();
-  const rows = await sql<{
-    id: string;
-    tour_name: string;
-    guest_email: string;
-    guest_name: string;
-    deposit_amount: string | null;
-  }>`
+  const rows = await sql<Parameters<typeof toConfirmedDetails>[0]>`
     update bookings
     set payment_status = 'confirmed', payment_note = ${note || null}
     where id = ${bookingId} and payment_status = 'pending'
-    returning id, tour_name, guest_email, guest_name, deposit_amount
+    returning id, tour_name, guest_email, guest_name, date, adults, children,
+      tour_type, pickup, pickup_time, total, deposit_amount, balance_due, lang
   `;
   const row = rows[0];
-  return row
-    ? {
-        bookingId: row.id,
-        tourName: row.tour_name,
-        guestEmail: row.guest_email,
-        guestName: row.guest_name,
-        depositAmount: row.deposit_amount ? Number(row.deposit_amount) : 0,
-      }
-    : null;
+  return row ? toConfirmedDetails(row) : null;
 }
 
 /** Most recent bookings first, for the admin panel. Requires an authenticated caller. */

@@ -126,6 +126,7 @@ export function CheckoutPage() {
           total,
           paymentIntentId,
           mercadopagoPaymentId,
+          lang,
         },
       });
     } catch {
@@ -267,17 +268,10 @@ export function CheckoutPage() {
             </Link>
           </div>
           <div>
-            <Label htmlFor="pickupTime">
-              {copy.pickupTimeLabel[lang]}{" "}
-              <span className="text-muted">({copy.optional[lang]})</span>
-            </Label>
-            <Input
-              id="pickupTime"
-              type="time"
-              className="mt-1.5"
-              value={guest.pickupTime}
-              onChange={(e) => patchGuest({ pickupTime: e.target.value })}
-            />
+            <Label>{copy.pickupTimeLabel[lang]}</Label>
+            <p className="mt-1.5 flex h-11 items-center rounded-[var(--radius-md)] bg-bg-elevated px-4 text-sm shadow-[var(--shadow-border)]">
+              {guest.pickupTime || copy.pickupTimeTbd[lang]}
+            </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>

@@ -35,13 +35,7 @@ export default async function mercadopagoWebhookMiddleware(
           "../../src/lib/email.server"
         );
         await sendDepositConfirmedEmail(confirmed.bookingId, confirmed.tourName);
-        await sendCustomerReceiptEmail({
-          bookingId: confirmed.bookingId,
-          tourName: confirmed.tourName,
-          guestEmail: confirmed.guestEmail,
-          guestName: confirmed.guestName,
-          amountPaid: confirmed.depositAmount,
-        });
+        await sendCustomerReceiptEmail(confirmed);
       }
     }
 
